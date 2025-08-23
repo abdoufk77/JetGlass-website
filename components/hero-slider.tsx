@@ -115,7 +115,7 @@ export default function HeroSlider({
                   <div className="flex justify-center animate-fade-in-delay-2">
                     <Button size="lg" asChild className="bg-white text-primary-600 hover:bg-gray-100">
                       <Link href="/devis">
-                        Demander un devis gratuit
+                        Demander un devis
                         <ArrowRight className="ml-2" size={20} />
                       </Link>
                     </Button>

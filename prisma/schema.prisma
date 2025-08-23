@@ -98,11 +98,17 @@ model QuoteProduct {
 model CompanySettings {
   id              String  @id @default(cuid())
   name            String  @default("JetGlass")
-  address         String?
-  phone           String?
-  email           String?
-  website         String?
+  address         String  @default("123 Rue de la Verrerie, 69000 Lyon, France")
+  phone           String  @default("+33 4 78 12 34 56")
+  email           String  @default("contact@jetglass.fr")
+  website         String  @default("www.jetglass.fr")
   logo            String?
+  description     String  @default("Spécialiste en solutions vitrées sur mesure depuis plus de 20 ans")
+  facebookUrl     String?
+  twitterUrl      String?
+  linkedinUrl     String?
+  instagramUrl    String?
+  workingHours    String  @default("Lundi - Vendredi: 8h00 - 18h00, Samedi: 9h00 - 12h00")
   tvaRate         Float   @default(20.0)
   paymentTerms    String  @default("50% à la commande, 50% à l'enlèvement")
   deliveryTerms   String  @default("1 semaine pour les produits standards, 4 semaines pour les produits spéciaux")

@@ -17,8 +17,13 @@ interface CompanySettings {
   email?: string
   website?: string
   logo?: string
+  description?: string
+  facebookUrl?: string
+  twitterUrl?: string
+  linkedinUrl?: string
+  instagramUrl?: string
+  workingHours?: string
   tvaRate: number
-  conditions: string
   deliveryTerms: string
   legalNotice: string
   paymentTerms: string
@@ -34,8 +39,13 @@ export default function AdminSettingsPage() {
     email: '',
     website: '',
     logo: '',
+    description: '',
+    facebookUrl: '',
+    twitterUrl: '',
+    linkedinUrl: '',
+    instagramUrl: '',
+    workingHours: '',
     tvaRate: 20,
-    conditions: '',
     deliveryTerms: '1 semaine pour les produits standards, 4 semaines pour les produits spéciaux',
     legalNotice: 'Prière de vérifier les dimensions chiffrées sur ce devis avant fabrication',
     paymentTerms: 'Paiement à 30 jours fin de mois'
@@ -183,6 +193,74 @@ export default function AdminSettingsPage() {
                     onChange={(e) => handleChange('logo', e.target.value)}
                     placeholder="https://..."
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description de l'entreprise</label>
+                  <textarea
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    rows={3}
+                    value={settings.description || ''}
+                    onChange={(e) => handleChange('description', e.target.value)}
+                    placeholder="Spécialiste en solutions vitrées..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Horaires d'ouverture</label>
+                  <Input
+                    value={settings.workingHours || ''}
+                    onChange={(e) => handleChange('workingHours', e.target.value)}
+                    placeholder="Lundi - Vendredi: 8h00 - 18h00"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Media */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Réseaux sociaux</CardTitle>
+                <CardDescription>
+                  Liens vers vos réseaux sociaux (apparaîtront dans le footer)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Facebook</label>
+                    <Input
+                      value={settings.facebookUrl || ''}
+                      onChange={(e) => handleChange('facebookUrl', e.target.value)}
+                      placeholder="https://facebook.com/jetglass"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Twitter</label>
+                    <Input
+                      value={settings.twitterUrl || ''}
+                      onChange={(e) => handleChange('twitterUrl', e.target.value)}
+                      placeholder="https://twitter.com/jetglass"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">LinkedIn</label>
+                    <Input
+                      value={settings.linkedinUrl || ''}
+                      onChange={(e) => handleChange('linkedinUrl', e.target.value)}
+                      placeholder="https://linkedin.com/company/jetglass"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Instagram</label>
+                    <Input
+                      value={settings.instagramUrl || ''}
+                      onChange={(e) => handleChange('instagramUrl', e.target.value)}
+                      placeholder="https://instagram.com/jetglass"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -21,16 +21,19 @@ async function main() {
   console.log('Admin user created:', admin)
 
   // Create company settings
+  // Create default company settings
   const companySettings = await prisma.companySettings.upsert({
     where: { id: 'default' },
     update: {},
     create: {
       id: 'default',
       name: 'JetGlass',
-      address: '123 Rue de la Verrerie\n75001 Paris',
-      phone: '01 23 45 67 89',
+      address: '123 Rue de la Verrerie, 69000 Lyon, France',
+      phone: '+33 4 78 12 34 56',
       email: 'contact@jetglass.fr',
       website: 'www.jetglass.fr',
+      description: 'Spécialiste en solutions vitrées sur mesure depuis plus de 20 ans',
+      workingHours: 'Lundi - Vendredi: 8h00 - 18h00, Samedi: 9h00 - 12h00',
       tvaRate: 20.0,
       paymentTerms: '50% à la commande, 50% à l\'enlèvement',
       deliveryTerms: '1 semaine pour les produits standards, 4 semaines pour les produits spéciaux',
