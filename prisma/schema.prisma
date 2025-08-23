@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  reference       String   @unique
+  name            String
+  description     String?
+  categoryId      String
+  basePricePerM2  Float    @default(0) // Prix de base par m²
+  complexityFactor Float   @default(1) // Facteur de complexité (1 = simple, 1.5 = complexe)
+  thicknessFactor Float    @default(1) // Facteur d'épaisseur (plus épais = plus cher)
+  minPrice        Float    @default(50) // Prix minimum
+  dimensions      String?
+  image           String?
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  category      Category       @relation(fields: [categoryId], references: [id])
+  quoteProducts QuoteProduct[]
+
+  @@map("products")
+}
+
+model Quote {
+  id            String   @id @default(cuid())
+  quoteNumber   String   @unique
+  clientName    String
+  clientEmail   String
+  clientPhone   String?
+  projectRef    String?
+  status        String   @default("PENDING")
+  totalHT       Float
+  totalTTC      Float
+  tva           Float    @default(20.0)
+  pdfPath       String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  products QuoteProduct[]
+
+  @@map("quotes")
+}
+
+model QuoteProduct {
+  id        String @id @default(cuid())
+  quoteId   String
+  productId String
+  quantity  Int
+  width     Float? // Largeur en cm
+  length    Float? // Longueur en cm
+  thickness Float? // Épaisseur en mm
+  priceHT   Float
+  totalHT   Float
+
+  quote   Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("quote_products")
+}
+
+model CompanySettings {
+  id              String  @id @default(cuid())
+  name            String  @default("JetGlass")
+  address         String?
+  phone           String?
+  email           String?
+  website         String?
+  logo            String?
+  tvaRate         Float   @default(20.0)
+  paymentTerms    String  @default("50% à la commande, 50% à l'enlèvement")
+  deliveryTerms   String  @default("1 semaine pour les produits standards, 4 semaines pour les produits spéciaux")
+  legalNotice     String  @default("Prière de vérifier les dimensions chiffrées sur ce devis avant fabrication")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("company_settings")
+}
+
+// Note: SQLite doesn't support enums, using String with validation in application layer
+// Valid Role values: "ADMIN", "USER"
+// Valid QuoteStatus values: "PENDING", "VALIDATED", "REJECTED", "SENT"
