@@ -1,24 +1,55 @@
-import { prisma } from '@/lib/prisma'
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight, Loader2 } from 'lucide-react'
 
-async function getProducts() {
-  try {
-    const products = await prisma.product.findMany({
-      where: { active: true },
-      orderBy: { name: 'asc' }
-    })
-    return products
-  } catch (error) {
-    console.error('Error fetching products:', error)
-    return []
-  }
+interface Product {
+  id: string
+  name: string
+  reference: string
+  categoryId: string
+  description?: string
+  active: boolean
 }
 
-export default async function ProduitsPage() {
-  const products = await getProducts()
+export default function ProduitsPage() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const productsPerPage = 6
+
+  useEffect(() => {
+    loadProducts()
+  }, [])
+
+  const loadProducts = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/products')
+      if (response.ok) {
+        const data = await response.json()
+        setProducts(data.filter((product: Product) => product.active))
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Pagination logic
+  const totalPages = Math.ceil(products.length / productsPerPage)
+  const startIndex = (currentPage - 1) * productsPerPage
+  const endIndex = startIndex + productsPerPage
+  const currentProducts = products.slice(startIndex, endIndex)
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+  }
 
   return (
     <div className="py-12">
@@ -35,38 +66,95 @@ export default async function ProduitsPage() {
         </div>
 
         {/* Products Grid */}
-        {products.length > 0 ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {products.map((product) => (
-              <Card key={product.id} className="hover:shadow-lg transition-shadow">
-                <div className="aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
-                  <img 
-                    src="/images/produits/1.png" 
-                    alt={product.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <div className="aspect-video bg-gray-200 rounded-t-lg"></div>
                 <CardHeader>
-                  <CardTitle className="text-xl">{product.name}</CardTitle>
-                  <p className="text-sm text-gray-500 mt-1">Réf: {product.reference}</p>
-                  <CardDescription className="text-sm text-gray-600">
-                    Catégorie: {product.categoryId}
-                  </CardDescription>
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
                 </CardHeader>
                 <CardContent>
-                  {product.description && (
-                    <p className="text-gray-600 mb-4">{product.description}</p>
-                  )}
-                  <Button className="w-full" asChild>
-                    <Link href={`/devis?product=${product.id}`}>
-                      Ajouter au devis
-                      <ArrowRight className="ml-2" size={16} />
-                    </Link>
-                  </Button>
+                  <div className="h-10 bg-gray-200 rounded w-full"></div>
                 </CardContent>
               </Card>
             ))}
           </div>
+        ) : products.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {currentProducts.map((product) => (
+                <Card key={product.id} className="hover:shadow-lg transition-shadow">
+                  <div className="aspect-video bg-gray-100 rounded-t-lg overflow-hidden relative">
+                    <Image
+                      src="/images/produits/1.png"
+                      alt={product.name}
+                      fill
+                      className="object-cover hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-xl">{product.name}</CardTitle>
+                    <p className="text-sm text-gray-500 mt-1">Réf: {product.reference}</p>
+                    <CardDescription className="text-sm text-gray-600">
+                      Catégorie: {product.categoryId}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {product.description && (
+                      <p className="text-gray-600 mb-4">{product.description}</p>
+                    )}
+                    <Button className="w-full" asChild>
+                      <Link href={`/devis?product=${product.id}`}>
+                        Ajouter au devis
+                        <ArrowRight className="ml-2" size={16} />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-2 mb-12">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Précédent
+                </Button>
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => goToPage(page)}
+                      className="w-10 h-10"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Suivant
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-12">
             <h3 className="text-2xl font-semibold text-gray-900 mb-4">
