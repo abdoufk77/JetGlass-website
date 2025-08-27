@@ -190,7 +190,6 @@ export default function ContactPage() {
                         required
                       >
                         <option value="">Sélectionnez un sujet</option>
-                        <option value="devis">Demande de devis</option>
                         <option value="info">Demande d'information</option>
                         <option value="sav">Service après-vente</option>
                         <option value="partenariat">Partenariat</option>
@@ -244,7 +243,7 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="text-center hover:shadow-lg transition-shadow">
               <CardHeader>
                 <MessageSquare className="h-12 w-12 text-primary-600 mx-auto mb-4" />
@@ -260,20 +259,6 @@ export default function ContactPage() {
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <Calendar className="h-12 w-12 text-primary-600 mx-auto mb-4" />
-                <CardTitle>Rendez-vous</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="mb-4">
-                  Planifiez une visite de nos experts sur votre site
-                </CardDescription>
-                <Button variant="outline" className="w-full">
-                  Prendre RDV
-                </Button>
-              </CardContent>
-            </Card>
 
             <Card className="text-center hover:shadow-lg transition-shadow">
               <CardHeader>
@@ -294,7 +279,7 @@ export default function ContactPage() {
       </section>
 
       {/* Map Section */}
-      <section className="py-16">
+      <section className="py-16 bg-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Nous Trouver</h2>
@@ -303,17 +288,17 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="bg-gray-200 h-96 rounded-lg flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <MapPin className="h-16 w-16 mx-auto mb-4" />
-              <p className="text-lg font-medium">Carte Interactive</p>
-              <p className="text-sm">{displaySettings.address}</p>
-              <p className="text-sm mt-2">
-                <a href="https://maps.google.com" className="text-primary-600 hover:underline">
-                  Voir sur Google Maps
-                </a>
-              </p>
-            </div>
+          <div className="h-[500px] rounded-lg overflow-hidden shadow-2xl border-4 border-white">
+            <iframe
+               title="Google Map"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d19801.244488271623!2d-0.11809292427696366!3d51.509865099999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761cb0f3c4e921%3A0xdda6d63b5d75c5fa!2sLondon!5e0!3m2!1sen!2suk!4v1622710821147!5m2!1sen!2suk"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen={true}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
         </div>
       </section>
