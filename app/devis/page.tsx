@@ -265,64 +265,93 @@ export default function DevisPage() {
               <CardContent>
                 {/* Quote Items */}
                 {quoteItems.length > 0 ? (
-                  <div className="space-y-4 mb-6">
+                  <div className="space-y-6 mb-6">
                     {quoteItems.map((item) => (
-                      <div key={item.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{item.product.name}</h4>
-                          <div className="grid grid-cols-3 gap-1 mt-2">
-                            <Input
-                              type="number"
-                              placeholder="L (cm)"
-                              value={item.width || ''}
-                              onChange={(e) => updateDimensions(item.productId, 'width', parseFloat(e.target.value) || 0)}
-                              className="text-xs h-6"
-                            />
-                            <Input
-                              type="number"
-                              placeholder="l (cm)"
-                              value={item.length || ''}
-                              onChange={(e) => updateDimensions(item.productId, 'length', parseFloat(e.target.value) || 0)}
-                              className="text-xs h-6"
-                            />
-                            <Input
-                              type="number"
-                              placeholder="É (mm)"
-                              value={item.thickness || ''}
-                              onChange={(e) => updateDimensions(item.productId, 'thickness', parseFloat(e.target.value) || 0)}
-                              className="text-xs h-6"
+                      <div key={item.productId} className="border-b pb-6 last:border-b-0 last:pb-0">
+                        <div className="flex items-start space-x-4">
+                          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            <img
+                              src="/images/produits/1.png" // Placeholder image
+                              alt={item.product.name}
+                              className="w-full h-full object-cover"
                             />
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                          >
-                            <Minus size={12} />
-                          </Button>
-                          <span className="w-8 text-center text-sm">{item.quantity}</span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          >
-                            <Plus size={12} />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => removeFromQuote(item.productId)}
-                          >
-                            <Trash2 size={12} />
-                          </Button>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-semibold text-gray-800 flex-1 pr-2">{item.product.name}</h4>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 flex-shrink-0"
+                                onClick={() => removeFromQuote(item.productId)}
+                              >
+                                <Trash2 size={16} className="text-gray-500 hover:text-red-500" />
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-x-3 mt-4">
+                              <div className="flex flex-col">
+                                <label className="text-xs font-medium text-gray-500 h-4 mb-1">Largeur (cm)</label>
+                                <Input
+                                  type="number"
+                                  placeholder="120"
+                                  value={item.width || ''}
+                                  onChange={(e) => updateDimensions(item.productId, 'width', parseFloat(e.target.value) || 0)}
+                                  className="h-9 w-full"
+                                />
+                              </div>
+                              <div className="flex flex-col">
+                                <label className="text-xs font-medium text-gray-500 h-4 mb-1">Longueur (cm)</label>
+                                <Input
+                                  type="number"
+                                  placeholder="80"
+                                  value={item.length || ''}
+                                  onChange={(e) => updateDimensions(item.productId, 'length', parseFloat(e.target.value) || 0)}
+                                  className="h-9 w-full"
+                                />
+                              </div>
+                              <div className="flex flex-col">
+                                <label className="text-xs font-medium text-gray-500 h-4 mb-1">Épais. (mm)</label>
+                                <Input
+                                  type="number"
+                                  placeholder="4"
+                                  value={item.thickness || ''}
+                                  onChange={(e) => updateDimensions(item.productId, 'thickness', parseFloat(e.target.value) || 0)}
+                                  className="h-9 w-full"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2 mt-4">
+                              <label className="text-sm font-medium text-gray-700">Quantité:</label>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                className="h-8 w-8"
+                                onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                              >
+                                <Minus size={14} />
+                              </Button>
+                              <span className="w-10 text-center font-semibold text-lg text-gray-800">{item.quantity}</span>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                className="h-8 w-8"
+                                onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                              >
+                                <Plus size={14} />
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">Aucun produit sélectionné</p>
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Votre devis est vide</p>
+                    <p className="text-sm text-gray-400 mt-1">Ajoutez des produits pour commencer</p>
+                  </div>
                 )}
 
                 {/* Note about pricing */}
