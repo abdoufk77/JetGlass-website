@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { formatPrice } from '@/lib/utils'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
@@ -40,20 +39,18 @@ export default async function ProduitsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {products.map((product) => (
               <Card key={product.id} className="hover:shadow-lg transition-shadow">
-                {product.image && (
-                  <div className="aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
+                <div className="aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
+                  <img 
+                    src="/images/produits/1.png" 
+                    alt={product.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
                 <CardHeader>
                   <CardTitle className="text-xl">{product.name}</CardTitle>
                   <p className="text-sm text-gray-500 mt-1">Réf: {product.reference}</p>
                   <CardDescription className="text-sm text-gray-600">
-                    Catégorie: {product.category}
+                    Catégorie: {product.categoryId}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

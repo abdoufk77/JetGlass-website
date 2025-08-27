@@ -1,10 +1,54 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { MapPin, Phone, Mail, Clock, MessageSquare, Calendar } from 'lucide-react'
 
+interface CompanySettings {
+  name: string
+  address: string
+  phone: string
+  email: string
+  website: string
+  description: string
+  facebookUrl?: string
+  twitterUrl?: string
+  linkedinUrl?: string
+  instagramUrl?: string
+  workingHours: string
+}
+
 export default function ContactPage() {
+  const [settings, setSettings] = useState<CompanySettings | null>(null)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        if (response.ok) {
+          const data = await response.json()
+          setSettings(data)
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+      }
+    }
+
+    fetchSettings()
+  }, [])
+
+  // Fallback values if settings are not loaded
+  const displaySettings = settings || {
+    name: 'JetGlass',
+    address: '123 Rue de la Verrerie, 69000 Lyon, France',
+    phone: '+33 4 78 12 34 56',
+    email: 'contact@jetglass.fr',
+    description: 'Votre spécialiste en verrerie depuis plus de 20 ans.',
+    workingHours: 'Lundi - Vendredi: 8h00 - 18h00, Samedi: 9h00 - 12h00'
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -39,8 +83,12 @@ export default function ContactPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-600">
-                      123 Rue de la Verrerie<br />
-                      69000 Lyon, France
+                      {displaySettings.address.split(',').map((line, index) => (
+                        <span key={index}>
+                          {line.trim()}
+                          {index < displaySettings.address.split(',').length - 1 && <br />}
+                        </span>
+                      ))}
                     </p>
                   </CardContent>
                 </Card>
@@ -53,8 +101,8 @@ export default function ContactPage() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">+33 4 78 12 34 56</p>
-                    <p className="text-sm text-gray-500">Du lundi au vendredi, 8h-18h</p>
+                    <p className="text-gray-600">{displaySettings.phone}</p>
+                    <p className="text-sm text-gray-500">{displaySettings.workingHours}</p>
                   </CardContent>
                 </Card>
 
@@ -66,7 +114,7 @@ export default function ContactPage() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">contact@jetglass.fr</p>
+                    <p className="text-gray-600">{displaySettings.email}</p>
                     <p className="text-sm text-gray-500">Réponse sous 24h</p>
                   </CardContent>
                 </Card>
@@ -80,9 +128,9 @@ export default function ContactPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-1 text-gray-600">
-                      <p>Lundi - Vendredi: 8h00 - 18h00</p>
-                      <p>Samedi: 9h00 - 12h00</p>
-                      <p>Dimanche: Fermé</p>
+                      {displaySettings.workingHours.split(',').map((schedule, index) => (
+                        <p key={index}>{schedule.trim()}</p>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -237,7 +285,7 @@ export default function ContactPage() {
                   Besoin d'une réponse immédiate ? Appelez-nous directement
                 </CardDescription>
                 <Button variant="outline" className="w-full">
-                  <a href="tel:+33478123456">04 78 12 34 56</a>
+                  <a href={`tel:${displaySettings.phone.replace(/\s/g, '')}`}>{displaySettings.phone}</a>
                 </Button>
               </CardContent>
             </Card>
@@ -259,7 +307,7 @@ export default function ContactPage() {
             <div className="text-center text-gray-500">
               <MapPin className="h-16 w-16 mx-auto mb-4" />
               <p className="text-lg font-medium">Carte Interactive</p>
-              <p className="text-sm">123 Rue de la Verrerie, 69000 Lyon</p>
+              <p className="text-sm">{displaySettings.address}</p>
               <p className="text-sm mt-2">
                 <a href="https://maps.google.com" className="text-primary-600 hover:underline">
                   Voir sur Google Maps

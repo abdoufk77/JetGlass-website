@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatPrice } from '@/lib/utils'
-import { Plus, Minus, Trash2, Send } from 'lucide-react'
+import { pageCache, CACHE_KEYS } from '@/lib/cache'
+import { Plus, Minus, Trash2, Send, Loader2 } from 'lucide-react'
 
 interface Category {
   id: string
@@ -43,21 +44,48 @@ export default function DevisPage() {
     phone: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    fetchProducts()
+    loadProducts()
+    // Load cached client info
+    const cachedClientInfo = pageCache.get(CACHE_KEYS.DEVIS_FORM)
+    if (cachedClientInfo) {
+      setClientInfo(cachedClientInfo)
+    }
   }, [])
 
-  const fetchProducts = async () => {
+  // Cache client info when it changes
+  useEffect(() => {
+    if (clientInfo.name || clientInfo.email || clientInfo.phone) {
+      pageCache.set(CACHE_KEYS.DEVIS_FORM, clientInfo, 30) // Cache for 30 minutes
+    }
+  }, [clientInfo])
+
+  const loadProducts = async () => {
+    setIsLoading(true)
+    
+    // Try to get from cache first
+    const cachedProducts = pageCache.get(CACHE_KEYS.PRODUCTS)
+    if (cachedProducts) {
+      setProducts(cachedProducts)
+      setIsLoading(false)
+      return
+    }
+
     try {
       const response = await fetch('/api/products')
       if (response.ok) {
         const data = await response.json()
         setProducts(data)
+        // Cache products for 10 minutes
+        pageCache.set(CACHE_KEYS.PRODUCTS, data, 10)
       }
     } catch (error) {
       console.error('Error fetching products:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -170,24 +198,51 @@ export default function DevisPage() {
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Sélectionner vos produits</h2>
             
-            {products.length > 0 ? (
+            {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {products.map((product) => (
-                  <Card key={product.id} className="hover:shadow-md transition-shadow">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
                     <CardHeader>
-                      <CardTitle className="text-lg">{product.name}</CardTitle>
-                      <CardDescription>
-                        Réf: {product.reference} | {product.category?.name || 'Sans catégorie'}
-                      </CardDescription>
+                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                     </CardHeader>
                     <CardContent>
                       <div className="flex justify-end">
-                        <Button onClick={() => addToQuote(product)} size="sm">
-                          <Plus size={16} className="mr-1" />
-                          Ajouter
-                        </Button>
+                        <div className="h-8 bg-gray-200 rounded w-20"></div>
                       </div>
                     </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : products.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {products.map((product) => (
+                  <Card key={product.id} className="hover:shadow-md transition-shadow">
+                    <div className="flex items-start p-4">
+                      <div className="flex-1">
+                        <CardHeader className="p-0 pb-3">
+                          <CardTitle className="text-lg">{product.name}</CardTitle>
+                          <CardDescription>
+                            Réf: {product.reference} | {product.category?.name || 'Sans catégorie'}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <div className="flex justify-start">
+                            <Button onClick={() => addToQuote(product)} size="sm">
+                              <Plus size={16} className="mr-1" />
+                              Ajouter
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </div>
+                      <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden ml-4 flex-shrink-0">
+                        <img
+                          src="/images/produits/1.png"
+                          alt={product.name}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    </div>
                   </Card>
                 ))}
               </div>
@@ -311,7 +366,10 @@ export default function DevisPage() {
                     disabled={isSubmitting || quoteItems.length === 0}
                   >
                     {isSubmitting ? (
-                      'Génération en cours...'
+                      <>
+                        <Loader2 size={16} className="mr-2 animate-spin" />
+                        Génération en cours...
+                      </>
                     ) : (
                       <>
                         <Send size={16} className="mr-2" />

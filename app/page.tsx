@@ -2,13 +2,13 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Shield, Zap, Award, Users, ArrowRight, CheckCircle } from 'lucide-react'
-import HeroSlider from '@/components/hero-slider'
+import OptimizedHeroSlider from '@/components/optimized-hero-slider'
 
 export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Slider Section */}
-      <HeroSlider />
+      <OptimizedHeroSlider />
 
       {/* Features Section */}
       <section className="py-20 bg-gray-50">

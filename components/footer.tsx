@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react'
+import { Facebook, Twitter, Linkedin, Instagram } from 'lucide-react'
 
 interface CompanySettings {
   name: string
@@ -24,21 +24,43 @@ export default function Footer() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
+        console.log('Footer: Fetching settings from /api/settings')
         const response = await fetch('/api/settings')
+        console.log('Footer: Response status:', response.status)
+        console.log('Footer: Response headers:', response.headers)
+        
         if (response.ok) {
           const data = await response.json()
+          console.log('Footer: Settings data received:', data)
+          console.log('Footer: Data type:', typeof data)
+          console.log('Footer: Data keys:', Object.keys(data || {}))
           setSettings(data)
+        } else {
+          const errorText = await response.text()
+          console.error('Footer: Failed to fetch settings, status:', response.status)
+          console.error('Footer: Error response:', errorText)
         }
       } catch (error) {
-        console.error('Error fetching settings:', error)
+        console.error('Footer: Error fetching settings:', error)
       }
     }
 
     fetchSettings()
   }, [])
 
-  // Fallback values if settings are not loaded
-  const displaySettings = settings || {
+  // Use settings from database or fallback values
+  const displaySettings = settings ? {
+    name: settings.name || 'JetGlass',
+    address: settings.address || '123 Rue de la Verrerie, 75001 Paris',
+    phone: settings.phone || '01 23 45 67 89',
+    email: settings.email || 'contact@jetglass.fr',
+    description: settings.description || 'Votre spécialiste en verrerie depuis plus de 20 ans. Nous proposons des solutions sur mesure pour tous vos projets de vitrerie.',
+    workingHours: settings.workingHours || 'Lundi - Vendredi: 8h00 - 18h00',
+    facebookUrl: settings.facebookUrl,
+    twitterUrl: settings.twitterUrl,
+    linkedinUrl: settings.linkedinUrl,
+    instagramUrl: settings.instagramUrl
+  } : {
     name: 'JetGlass',
     address: '123 Rue de la Verrerie, 75001 Paris',
     phone: '01 23 45 67 89',
@@ -59,15 +81,12 @@ export default function Footer() {
             </p>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <MapPin size={16} />
                 <span className="text-sm">{displaySettings.address}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Phone size={16} />
                 <span className="text-sm">{displaySettings.phone}</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <Mail size={16} />
+              <div className="flex items-center space-x-2">  
                 <span className="text-sm">{displaySettings.email}</span>
               </div>
               {displaySettings.workingHours && (
@@ -79,27 +98,27 @@ export default function Footer() {
             </div>
             
             {/* Social Media Links */}
-            {(settings?.facebookUrl || settings?.twitterUrl || settings?.linkedinUrl || settings?.instagramUrl) && (
+            {(displaySettings.facebookUrl || displaySettings.twitterUrl || displaySettings.linkedinUrl || displaySettings.instagramUrl) && (
               <div className="mt-4">
                 <h4 className="text-sm font-semibold mb-2">Suivez-nous</h4>
                 <div className="flex space-x-3">
-                  {settings?.facebookUrl && (
-                    <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
+                  {displaySettings.facebookUrl && (
+                    <a href={displaySettings.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
                       <Facebook size={20} />
                     </a>
                   )}
-                  {settings?.twitterUrl && (
-                    <a href={settings.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
+                  {displaySettings.twitterUrl && (
+                    <a href={displaySettings.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
                       <Twitter size={20} />
                     </a>
                   )}
-                  {settings?.linkedinUrl && (
-                    <a href={settings.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
+                  {displaySettings.linkedinUrl && (
+                    <a href={displaySettings.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
                       <Linkedin size={20} />
                     </a>
                   )}
-                  {settings?.instagramUrl && (
-                    <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
+                  {displaySettings.instagramUrl && (
+                    <a href={displaySettings.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
                       <Instagram size={20} />
                     </a>
                   )}
