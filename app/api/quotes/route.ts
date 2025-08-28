@@ -26,10 +26,51 @@ export async function GET() {
   }
 }
 
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Quote ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Delete the quote and its related products
+    await prisma.quote.delete({
+      where: { id }
+    })
+
+    return NextResponse.json(
+      { message: 'Quote deleted successfully' },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('Error deleting quote:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete quote' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const data = await request.json()
-    const { clientName, clientEmail, clientPhone, products } = data
+    const { 
+      clientName, 
+      clientEmail, 
+      clientPhone, 
+      projectRef,
+      notes,
+      products, 
+      totalHT, 
+      totalTTC, 
+      tva = 20.0,
+      generatePDF = false 
+    } = data
 
     // Generate quote number
     const quoteNumber = generateQuoteNumber()
@@ -40,17 +81,19 @@ export async function POST(request: Request) {
         quoteNumber,
         clientName,
         clientEmail,
-        clientPhone,
-        totalHT: 0, // Will be calculated manually by admin
-        totalTTC: 0, // Will be calculated manually by admin
-        tva: 20.0,
+        clientPhone: clientPhone || null,
+        projectRef: projectRef || null,
+        notes: notes || null,
+        totalHT: totalHT || 0,
+        totalTTC: totalTTC || 0,
+        tva: tva,
         status: 'PENDING',
         products: {
           create: products.map((item: any) => ({
             productId: item.productId,
             quantity: item.quantity,
-            priceHT: 0, // Will be set by admin
-            totalHT: 0, // Will be calculated by admin
+            priceHT: item.priceHT || 0,
+            totalHT: item.totalHT || 0,
             width: item.width || null,
             length: item.length || null,
             thickness: item.thickness || null
@@ -66,35 +109,41 @@ export async function POST(request: Request) {
       }
     })
 
-    // Get company settings
-    let companySettings = await prisma.companySettings.findFirst()
-    if (!companySettings) {
-      companySettings = await prisma.companySettings.create({
-        data: {
-          name: 'JetGlass',
-          address: '123 Rue de la Verrerie, 75001 Paris',
-          phone: '01 23 45 67 89',
-          email: 'contact@jetglass.fr',
-          website: 'www.jetglass.fr'
-        }
+    let pdfPath = null
+
+    // Generate PDF if requested
+    if (generatePDF) {
+      // Get company settings
+      let companySettings = await prisma.companySettings.findFirst()
+      if (!companySettings) {
+        companySettings = await prisma.companySettings.create({
+          data: {
+            name: 'JetGlass',
+            address: '123 Rue de la Verrerie, 75001 Paris',
+            phone: '01 23 45 67 89',
+            email: 'contact@jetglass.fr',
+            website: 'www.jetglass.fr'
+          }
+        })
+      }
+
+      // Generate PDF
+      pdfPath = await generateQuotePDF(quote, companySettings)
+
+      // Update quote with PDF path
+      await prisma.quote.update({
+        where: { id: quote.id },
+        data: { pdfPath }
       })
+
+      // Optionally send email (commented out for admin creation)
+      // await sendQuoteEmail(clientEmail, clientName, quoteNumber, pdfPath)
     }
-
-    // Generate PDF
-    const pdfPath = await generateQuotePDF(quote, companySettings)
-
-    // Update quote with PDF path
-    await prisma.quote.update({
-      where: { id: quote.id },
-      data: { pdfPath }
-    })
-
-    // Send email
-    await sendQuoteEmail(clientEmail, clientName, quoteNumber, pdfPath)
 
     return NextResponse.json({
       message: 'Quote created successfully',
       quoteNumber,
+      pdfPath,
       quote: { ...quote, pdfPath }
     }, { status: 201 })
   } catch (error) {

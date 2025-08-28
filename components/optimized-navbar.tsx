@@ -87,9 +87,11 @@ export default function OptimizedNavbar() {
                 {item.label}
               </NavLink>
             ))}
-            <Button asChild size="sm" className="ml-4">
-              <Link href="/devis" prefetch={true}>Demander Devis</Link>
-            </Button>
+            <Link href="/devis" prefetch={true}>
+              <Button asChild size="sm" className="ml-4">
+                Demander Devis
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}

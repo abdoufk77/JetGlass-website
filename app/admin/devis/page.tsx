@@ -3,6 +3,9 @@ import AdminSidebar from '@/components/admin/sidebar'
 import { getAllQuotes } from '@/lib/data'
 import DevisTable from './devis-table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
+import Link from 'next/link'
 
 async function QuotesTable() {
   const quotes = await getAllQuotes();
@@ -35,9 +38,17 @@ export default function AdminQuotesPage() {
       <AdminSidebar />
       <div className="flex-1 overflow-auto">
         <div className="p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Gestion des Devis</h1>
-            <p className="text-gray-600">Gérez et suivez tous les devis clients</p>
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Gestion des Devis</h1>
+              <p className="text-gray-600">Gérez et suivez tous les devis clients</p>
+            </div>
+            <Link href="/admin/devis/nouveau">
+              <Button>
+                <Plus className="mr-2" size={16} />
+                Nouveau Devis
+              </Button>
+            </Link>
           </div>
           <Suspense fallback={<QuotesTableSkeleton />}>
             <QuotesTable />

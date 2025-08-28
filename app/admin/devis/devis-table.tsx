@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Search, Download, Eye } from 'lucide-react'
+import { Search, Download, Eye, Edit, Trash2, FileText, ChevronLeft, ChevronRight, Save, Plus } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { Quote, QuoteProduct, Product } from '@prisma/client'
 
@@ -22,6 +22,10 @@ export default function DevisTable({ quotes }: DevisTableProps) {
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [selectedQuote, setSelectedQuote] = useState<FullQuote | null>(null)
   const [showDetails, setShowDetails] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState<string | null>(null)
 
   useEffect(() => {
     let filtered = quotes.filter(quote =>
@@ -66,6 +70,74 @@ export default function DevisTable({ quotes }: DevisTableProps) {
     }
   }
 
+  const handleGeneratePDF = async (quote: FullQuote) => {
+    setIsGeneratingPDF(quote.id)
+    try {
+      const response = await fetch(`/api/quotes/${quote.id}/pdf`, {
+        method: 'POST'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        // Refresh the page or update the quote with the new PDF path
+        window.location.reload()
+      } else {
+        alert('Erreur lors de la génération du PDF')
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Erreur lors de la génération du PDF')
+    } finally {
+      setIsGeneratingPDF(null)
+    }
+  }
+
+  const handleDelete = async (quote: FullQuote) => {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le devis ${quote.quoteNumber} ?`)) {
+      try {
+        const response = await fetch(`/api/quotes/${quote.id}`, {
+          method: 'DELETE'
+        })
+        
+        if (response.ok) {
+          window.location.reload()
+        } else {
+          alert('Erreur lors de la suppression du devis')
+        }
+      } catch (error) {
+        console.error('Error deleting quote:', error)
+        alert('Erreur lors de la suppression du devis')
+      }
+    }
+  }
+
+  const handleEdit = (quote: FullQuote) => {
+    window.location.href = `/admin/devis/edit/${quote.id}`
+  }
+
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredQuotes.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentQuotes = filteredQuotes.slice(startIndex, endIndex)
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const goToPrevious = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  const goToNext = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+
   return (
     <>
       {/* Search and Filters */}
@@ -94,6 +166,9 @@ export default function DevisTable({ quotes }: DevisTableProps) {
 
         <div className="text-sm text-gray-600 flex items-center justify-end">
           <span className="font-medium">{filteredQuotes.length}</span>&nbsp;devis trouvé{filteredQuotes.length > 1 ? 's' : ''}
+          {totalPages > 1 && (
+            <span className="ml-4">Page {currentPage} sur {totalPages}</span>
+          )}
         </div>
       </div>
 
@@ -124,8 +199,8 @@ export default function DevisTable({ quotes }: DevisTableProps) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredQuotes.length > 0 ? (
-                filteredQuotes.map((quote) => (
+              {currentQuotes.length > 0 ? (
+                currentQuotes.map((quote) => (
                   <tr key={quote.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{quote.quoteNumber}</div>
@@ -148,23 +223,57 @@ export default function DevisTable({ quotes }: DevisTableProps) {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
+                      <div className="flex justify-end space-x-1">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleViewDetails(quote)}
+                          title="Voir les détails"
                         >
                           <Eye size={14} />
                         </Button>
-                        {quote.pdfPath && (
+                        
+                        {quote.pdfPath ? (
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleDownloadPDF(quote)}
+                            title="Télécharger PDF"
                           >
                             <Download size={14} />
                           </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleGeneratePDF(quote)}
+                            disabled={isGeneratingPDF === quote.id}
+                            title="Générer PDF"
+                          >
+                            {isGeneratingPDF === quote.id ? (
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-900"></div>
+                            ) : (
+                              <FileText size={14} />
+                            )}
+                          </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(quote)}
+                          title="Modifier"
+                        >
+                          <Edit size={14} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDelete(quote)}
+                          className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -183,6 +292,80 @@ export default function DevisTable({ quotes }: DevisTableProps) {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <Button
+                  onClick={goToPrevious}
+                  disabled={currentPage === 1}
+                  variant="outline"
+                  size="sm"
+                >
+                  Précédent
+                </Button>
+                <Button
+                  onClick={goToNext}
+                  disabled={currentPage === totalPages}
+                  variant="outline"
+                  size="sm"
+                >
+                  Suivant
+                </Button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Affichage de <span className="font-medium">{startIndex + 1}</span> à{' '}
+                    <span className="font-medium">{Math.min(endIndex, filteredQuotes.length)}</span> sur{' '}
+                    <span className="font-medium">{filteredQuotes.length}</span> résultats
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <Button
+                      onClick={goToPrevious}
+                      disabled={currentPage === 1}
+                      variant="outline"
+                      size="sm"
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                    </Button>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          currentPage === page
+                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                    
+                    <Button
+                      onClick={goToNext}
+                      disabled={currentPage === totalPages}
+                      variant="outline"
+                      size="sm"
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                    </Button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Quote Details Modal */}
@@ -298,6 +481,7 @@ export default function DevisTable({ quotes }: DevisTableProps) {
           </Card>
         </div>
       )}
+
     </>
   )
 }
