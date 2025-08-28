@@ -1,84 +1,8 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import AdminSidebar from '@/components/admin/sidebar'
-import { Package, FileText, TrendingUp, Users } from 'lucide-react'
-
-interface Stats {
-  totalProducts: number
-  totalQuotes: number
-  pendingQuotes: number
-  monthlyRevenue: number
-}
-
-export default function AdminDashboard() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const [stats, setStats] = useState<Stats>({
-    totalProducts: 0,
-    totalQuotes: 0,
-    pendingQuotes: 0,
-    monthlyRevenue: 0
-  })
-  const [recentQuotes, setRecentQuotes] = useState([])
-
-  useEffect(() => {
-    if (status === 'loading') return
-    if (!session) {
-      router.push('/admin/login')
-      return
-    }
-    fetchStats()
-    fetchRecentQuotes()
-  }, [session, status, router])
-
-  const fetchStats = async () => {
-    try {
-      const [productsRes, quotesRes] = await Promise.all([
-        fetch('/api/products'),
-        fetch('/api/quotes')
-      ])
-
-      if (productsRes.ok && quotesRes.ok) {
-        const products = await productsRes.json()
-        const quotes = await quotesRes.json()
-
-        const pendingQuotes = quotes.filter((q: any) => q.status === 'PENDING').length
-        const monthlyRevenue = quotes
-          .filter((q: any) => {
-            const quoteDate = new Date(q.createdAt)
-            const now = new Date()
-            return quoteDate.getMonth() === now.getMonth() && 
-                   quoteDate.getFullYear() === now.getFullYear()
-          })
-          .reduce((sum: number, q: any) => sum + q.totalTTC, 0)
-
-        setStats({
-          totalProducts: products.length,
-          totalQuotes: quotes.length,
-          pendingQuotes,
-          monthlyRevenue
-        })
-      }
-    } catch (error) {
-      console.error('Error fetching stats:', error)
-    }
-  }
-
-  const fetchRecentQuotes = async () => {
-    try {
-      const response = await fetch('/api/quotes')
-      if (response.ok) {
-        const quotes = await response.json()
-        setRecentQuotes(quotes.slice(0, 5))
-      }
-    } catch (error) {
-      console.error('Error fetching recent quotes:', error)
-    }
-  }
+import { Package, FileText, Users } from 'lucide-react'
+import { getDashboardStats, getRecentQuotes } from '@/lib/data'
+import { Quote } from '@prisma/client'
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -105,20 +29,9 @@ export default function AdminDashboard() {
     }
   }
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!session) {
-    return null
-  }
+export default async function AdminDashboard() {
+  const stats = await getDashboardStats()
+  const recentQuotes = await getRecentQuotes()
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -139,10 +52,10 @@ export default function AdminDashboard() {
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalProducts}</div>
-                <p className="text-xs text-muted-foreground">
-                  Produits actifs
-                </p>
+                  <div className="text-2xl font-bold">{stats.totalProducts}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Produits actifs
+                  </p>
               </CardContent>
             </Card>
 
@@ -152,10 +65,10 @@ export default function AdminDashboard() {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalQuotes}</div>
-                <p className="text-xs text-muted-foreground">
-                  Tous les devis
-                </p>
+                  <div className="text-2xl font-bold">{stats.totalQuotes}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Tous les devis
+                  </p>
               </CardContent>
             </Card>
 
@@ -165,10 +78,10 @@ export default function AdminDashboard() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.pendingQuotes}</div>
-                <p className="text-xs text-muted-foreground">
-                  Devis à traiter
-                </p>
+                  <div className="text-2xl font-bold">{stats.pendingQuotes}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Devis à traiter
+                  </p>
               </CardContent>
             </Card>
 
@@ -185,8 +98,8 @@ export default function AdminDashboard() {
             <CardContent>
               {recentQuotes.length > 0 ? (
                 <div className="space-y-4">
-                  {recentQuotes.map((quote: any) => (
-                    <div key={quote.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  {recentQuotes.map((quote: Quote) => (
+                    <div key={quote.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex-1">
                         <div className="flex items-center space-x-4">
                           <div>

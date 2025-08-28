@@ -24,6 +24,7 @@ interface CompanySettings {
   instagramUrl?: string
   workingHours?: string
   tvaRate: number
+  currency: string
   deliveryTerms: string
   legalNotice: string
   paymentTerms: string
@@ -33,6 +34,7 @@ export default function AdminSettingsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [settings, setSettings] = useState<CompanySettings>({
+    currency: 'DH',
     name: '',
     address: '',
     phone: '',
@@ -281,6 +283,15 @@ export default function AdminSettingsPage() {
                     step="0.1"
                     value={settings.tvaRate}
                     onChange={(e) => handleChange('tvaRate', parseFloat(e.target.value))}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Devise</label>
+                  <Input
+                    value={settings.currency || 'DH'}
+                    onChange={(e) => handleChange('currency', e.target.value)}
+                    placeholder="ex: DH, EUR, USD"
                   />
                 </div>
 

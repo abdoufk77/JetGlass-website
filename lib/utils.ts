@@ -5,11 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatPrice(price: number): string {
+export function formatPrice(price: number, currency: string = 'DH'): string {
+  // Map 'DH' to 'MAD' for Intl.NumberFormat compatibility
+  const currencyCode = currency.toUpperCase() === 'DH' ? 'MAD' : currency;
+
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency: 'EUR',
-  }).format(price)
+    currency: currencyCode,
+    currencyDisplay: 'symbol'
+  }).format(price);
 }
 
 export function generateQuoteNumber(): string {

@@ -107,10 +107,107 @@ export default function AdminSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p>Chargement des paramètres...</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-2 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-96 animate-pulse"></div>
+          </div>
+
+          <div className="space-y-8">
+            {/* Informations générales skeleton */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="mb-4">
+                <div className="h-6 bg-gray-200 rounded w-48 mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-64 animate-pulse"></div>
+              </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="h-4 bg-gray-200 rounded w-32 mb-2 animate-pulse"></div>
+                    <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                  <div>
+                    <div className="h-4 bg-gray-200 rounded w-24 mb-2 animate-pulse"></div>
+                    <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="h-4 bg-gray-200 rounded w-28 mb-2 animate-pulse"></div>
+                  <div className="h-20 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Coordonnées skeleton */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="mb-4">
+                <div className="h-6 bg-gray-200 rounded w-32 mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-56 animate-pulse"></div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <div className="h-4 bg-gray-200 rounded w-40 mb-2 animate-pulse"></div>
+                  <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="h-4 bg-gray-200 rounded w-24 mb-2 animate-pulse"></div>
+                    <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                  <div>
+                    <div className="h-4 bg-gray-200 rounded w-16 mb-2 animate-pulse"></div>
+                    <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="h-4 bg-gray-200 rounded w-36 mb-2 animate-pulse"></div>
+                  <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Réseaux sociaux skeleton */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="mb-4">
+                <div className="h-6 bg-gray-200 rounded w-36 mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-48 animate-pulse"></div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }, (_, i) => (
+                  <div key={i}>
+                    <div className="h-4 bg-gray-200 rounded w-20 mb-2 animate-pulse"></div>
+                    <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Paramètres commerciaux skeleton */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="mb-4">
+                <div className="h-6 bg-gray-200 rounded w-44 mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-60 animate-pulse"></div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <div className="h-4 bg-gray-200 rounded w-28 mb-2 animate-pulse"></div>
+                  <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                {Array.from({ length: 3 }, (_, i) => (
+                  <div key={i}>
+                    <div className="h-4 bg-gray-200 rounded w-36 mb-2 animate-pulse"></div>
+                    <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Button skeleton */}
+            <div className="flex justify-end">
+              <div className="h-10 w-36 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
         </div>
       </div>
     )
