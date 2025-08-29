@@ -3,8 +3,7 @@
 import { Suspense } from 'react'
 import { usePathname } from 'next/navigation'
 import OptimizedNavbar from '@/components/optimized-navbar'
-import Footer from '@/components/footer'
-import LoadingIndicator from '@/components/loading-indicator'
+import OptimizedFooter from '@/components/optimized-footer'
 
 function PageSkeleton() {
   return (
@@ -29,14 +28,13 @@ export function OptimizedLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <LoadingIndicator />
       <OptimizedNavbar />
       <Suspense fallback={<PageSkeleton />}>
         <main className="min-h-screen">
           {children}
         </main>
       </Suspense>
-      <Footer />
+      <OptimizedFooter />
     </>
   )
 }
