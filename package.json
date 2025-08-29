@@ -13,7 +13,8 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "postbuild": "next-sitemap"
+    "postbuild": "next-sitemap",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.15.0",

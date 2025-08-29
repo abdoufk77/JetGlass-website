@@ -1,8 +1,11 @@
-import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+export const runtime = 'nodejs'
 
-const prisma = new PrismaClient()
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 export async function POST() {
   try {
