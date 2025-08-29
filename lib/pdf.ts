@@ -216,6 +216,9 @@ export async function generateQuotePDF(quote: QuoteWithProducts, companySettings
     })
   } catch (error) {
     console.error('PDF Generation Error:', error)
-    throw new Error(`Failed to generate PDF: ${error.message}`)
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate PDF: ${error.message}`)
+    }
+    throw new Error(`Failed to generate PDF: ${String(error)}`)
   }
 }
