@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { memo } from 'react'
+import Logo from './Logo'
 
 const FooterSection = memo(({ title, children }: { title: string; children: React.ReactNode }) => (
   <div>
@@ -33,7 +34,9 @@ export default function OptimizedFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="md:col-span-2">
-            <h2 className="text-2xl font-bold text-gradient mb-4">JetGlass</h2>
+            <div className="mb-4">
+              <Logo className="scale-110" />
+            </div>
             <p className="text-gray-300 mb-4 max-w-md">
               Votre spécialiste en verrerie depuis plus de 20 ans. 
               Solutions sur mesure pour tous vos projets de vitrerie.

@@ -5,6 +5,7 @@ import { useState, useCallback, memo } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Button } from './ui/button'
 import { usePathname } from 'next/navigation'
+import Logo from './Logo'
 
 const NavLink = memo(({ href, children, onClick, isActive }: {
   href: string
@@ -71,9 +72,7 @@ export default function OptimizedNavbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0" prefetch={true}>
-              <span className="text-2xl font-bold text-gradient">JetGlass</span>
-            </Link>
+            <Logo />
           </div>
 
           {/* Desktop Navigation */}
