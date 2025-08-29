@@ -2,9 +2,8 @@
 
 import { Suspense } from 'react'
 import { usePathname } from 'next/navigation'
-import EnhancedNavbar from '@/components/enhanced-navbar'
-import Footer from '@/components/footer'
-import ElegantLoading from '@/components/elegant-loading'
+import OptimizedNavbar from '@/components/optimized-navbar'
+import OptimizedFooter from '@/components/optimized-footer'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { PerformanceMonitor } from '@/components/performance-monitor'
 
@@ -37,14 +36,13 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary>
       <PerformanceMonitor />
-      <ElegantLoading />
-      <EnhancedNavbar />
+      <OptimizedNavbar />
       <Suspense fallback={<PageSkeleton />}>
         <main className="min-h-screen">
           {children}
         </main>
       </Suspense>
-      <Footer />
+      <OptimizedFooter />
     </ErrorBoundary>
   )
 }

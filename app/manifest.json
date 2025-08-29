@@ -1,0 +1,21 @@
+{
+  "name": "JetGlass - Solutions Vitrées Sur Mesure",
+  "short_name": "JetGlass",
+  "description": "Spécialiste en solutions vitrées sur mesure depuis plus de 20 ans",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f2937",
+  "icons": [
+    {
+      "src": "/images/JetGlass.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/JetGlass.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

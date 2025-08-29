@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "build:analyze": "ANALYZE=true next build",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
     "@prisma/client": "^5.15.0",
@@ -21,7 +23,6 @@
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "iconv-lite": "^0.7.0",
     "lucide-react": "^0.400.0",
     "next": "14.2.5",
     "next-auth": "^4.24.7",
@@ -33,12 +34,14 @@
     "tailwind-merge": "^2.4.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^15.5.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
+    "next-sitemap": "^4.2.3",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.7.1",
