@@ -39,9 +39,9 @@ export default function OptimizedFooter() {
               Solutions sur mesure pour tous vos projets de vitrerie.
             </p>
             <div className="space-y-2 text-gray-300">
-              <p>📍 123 Rue de la Verrerie, 75001 Paris</p>
-              <p>📞 01 23 45 67 89</p>
-              <p>✉️ contact@jetglass.fr</p>
+              <p>📍 123 Rue de la Verrerie, 75001 Maroc</p>
+              <p>📞 06 23 45 67 89</p>
+              <p>✉️ contact@jetglass.ma</p>
             </div>
           </div>
 
