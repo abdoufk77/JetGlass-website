@@ -43,9 +43,9 @@ export default function ContactPage() {
   // Fallback values if settings are not loaded
   const displaySettings = settings || {
     name: 'JetGlass',
-    address: '123 Rue de la Verrerie, 69000 Lyon, France',
-    phone: '+33 4 78 12 34 56',
-    email: 'contact@jetglass.fr',
+    address: '123 Rue de la Verrerie, 69000 Lyon, Maroc',
+    phone: '06 01 78 12 34 56',
+    email: 'contact@jetglass.ma',
     description: 'Votre spécialiste en verrerie depuis plus de 20 ans.',
     workingHours: 'Lundi - Vendredi: 8h00 - 18h00, Samedi: 9h00 - 12h00'
   }
@@ -345,7 +345,7 @@ export default function ContactPage() {
               <CardContent>
                 <CardDescription>
                   Nous intervenons principalement en région Auvergne-Rhône-Alpes, 
-                  mais nous pouvons étudier des projets dans toute la France selon leur ampleur.
+                  mais nous pouvons étudier des projets dans toute la Maroc selon leur ampleur.
                 </CardDescription>
               </CardContent>
             </Card>
