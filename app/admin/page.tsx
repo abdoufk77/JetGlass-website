@@ -5,10 +5,11 @@ import { getDashboardStats, getRecentQuotes } from '@/lib/data'
 import { Quote } from '@prisma/client'
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
+    const formatted = new Intl.NumberFormat('fr-MA', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(price)
+    return `${formatted} DH`
   }
 
   const getStatusColor = (status: string) => {
