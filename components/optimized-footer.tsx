@@ -34,7 +34,7 @@ export default function OptimizedFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="md:col-span-2">
-            <div className="mb-4">
+            <div className="mb-5 ml-5">
               <Logo className="scale-110" />
             </div>
             <p className="text-gray-300 mb-4 max-w-md">

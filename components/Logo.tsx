@@ -10,7 +10,7 @@ const Logo = ({ className = '' }: { className?: string }) => {
       <Link href="/" className="flex items-center space-x-3">
         <div className="relative h-12 w-12">
           <Image 
-            src="/logo.png" 
+            src="/logoo.png" 
             alt="JetGlass Industry Logo" 
             fill
             className="object-contain"
