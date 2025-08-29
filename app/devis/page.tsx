@@ -172,7 +172,7 @@ export default function DevisPage() {
         setClientInfo({ name: '', email: '', phone: '' })
       } else {
         const error = await response.json()
-        setMessage(`Erreur: ${error.message}`)
+        setMessage(`Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
       }
     } catch (error) {
       setMessage('Erreur lors de la création du devis')

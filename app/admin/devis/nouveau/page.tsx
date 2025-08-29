@@ -20,6 +20,7 @@ interface Product {
   dimensions?: string
   categoryId: string
   category?: { name: string }
+  active: boolean
 }
 
 interface QuoteProduct {
@@ -190,7 +191,7 @@ export default function NewQuotePage() {
       }
     } catch (error) {
       console.error('Error creating quote:', error)
-      alert(`Erreur lors de la création du devis: ${error.message || 'Erreur de connexion'}`)
+      alert(`Erreur lors de la création du devis: ${error instanceof Error ? error.message : 'Erreur de connexion'}`)
     } finally {
       setIsLoading(false)
     }
