@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Search, Download, Eye, Edit, Trash2, FileText, ChevronLeft, ChevronRight, Save, Plus } from 'lucide-react'
+import { Search, Download, Eye, Edit, Trash2, FileText, ChevronLeft, ChevronRight, Save, Plus, Loader2 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { Quote, QuoteProduct, Product } from '@prisma/client'
+import QuotePreview from '@/components/admin/QuotePreview'
 
 type FullQuote = Quote & {
   products: (QuoteProduct & { product: Product })[];
@@ -21,7 +22,8 @@ export default function DevisTable({ quotes }: DevisTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [selectedQuote, setSelectedQuote] = useState<FullQuote | null>(null)
-  const [showDetails, setShowDetails] = useState(false)
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
@@ -59,9 +61,24 @@ export default function DevisTable({ quotes }: DevisTableProps) {
     }
   }
 
-  const handleViewDetails = (quote: FullQuote) => {
-    setSelectedQuote(quote)
-    setShowDetails(true)
+  const handleViewDetails = async (quote: FullQuote) => {
+    setIsPreviewLoading(true)
+    setShowPreview(true)
+    try {
+      const response = await fetch(`/api/quotes/${quote.id}`)
+      if (response.ok) {
+        const fullQuoteData = await response.json()
+        setSelectedQuote(fullQuoteData)
+      } else {
+        console.error('Failed to fetch quote details')
+        setShowPreview(false)
+      }
+    } catch (error) {
+      console.error('Error fetching quote details:', error)
+      setShowPreview(false)
+    } finally {
+      setIsPreviewLoading(false)
+    }
   }
 
   const handleDownloadPDF = (quote: FullQuote) => {
@@ -223,40 +240,15 @@ export default function DevisTable({ quotes }: DevisTableProps) {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-1">
+                      <div className="flex justify-end space-x-2">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleViewDetails(quote)}
-                          title="Voir les détails"
+                          title="Voir le devis"
                         >
                           <Eye size={14} />
                         </Button>
-                        
-                        {quote.pdfPath ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownloadPDF(quote)}
-                            title="Télécharger PDF"
-                          >
-                            <Download size={14} />
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleGeneratePDF(quote)}
-                            disabled={isGeneratingPDF === quote.id}
-                            title="Générer PDF"
-                          >
-                            {isGeneratingPDF === quote.id ? (
-                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-900"></div>
-                            ) : (
-                              <FileText size={14} />
-                            )}
-                          </Button>
-                        )}
                         <Button
                           size="sm"
                           variant="outline"
@@ -368,119 +360,35 @@ export default function DevisTable({ quotes }: DevisTableProps) {
         )}
       </div>
 
-      {/* Quote Details Modal */}
-      {showDetails && selectedQuote && (
+      {/* Quote Preview Modal */}
+      {showPreview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle>Détails du Devis {selectedQuote.quoteNumber}</CardTitle>
-              <CardDescription>
-                Créé le {new Date(selectedQuote.createdAt).toLocaleDateString('fr-FR')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Client Info */}
-                <div>
-                  <h3 className="font-semibold mb-3">Informations Client</h3>
-                  <div className="space-y-2">
-                    <p><strong>Nom:</strong> {selectedQuote.clientName}</p>
-                    <p><strong>Email:</strong> {selectedQuote.clientEmail}</p>
-                    {selectedQuote.clientPhone && (
-                      <p><strong>Téléphone:</strong> {selectedQuote.clientPhone}</p>
-                    )}
-                    {selectedQuote.projectRef && (
-                      <p><strong>Référence projet:</strong> {selectedQuote.projectRef}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Quote Info */}
-                <div>
-                  <h3 className="font-semibold mb-3">Informations Devis</h3>
-                  <div className="space-y-2">
-                    <p><strong>Total HT:</strong> {formatPrice(selectedQuote.totalHT)}</p>
-                    <p><strong>TVA ({selectedQuote.tva}%):</strong> {formatPrice(selectedQuote.totalHT * (selectedQuote.tva / 100))}</p>
-                    <p><strong>Total TTC:</strong> {formatPrice(selectedQuote.totalTTC)}</p>
-                    <div className="flex items-center space-x-2">
-                      <strong>Statut:</strong>
-                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(selectedQuote.status)}`}>
-                        {getStatusText(selectedQuote.status)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Products */}
-              <div className="mb-6">
-                <h3 className="font-semibold mb-3">Produits</h3>
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Référence
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Produit
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Quantité
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Prix HT
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Total HT
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {selectedQuote.products.map((item) => (
-                          <tr key={item.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {item.product.reference}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {item.product.name}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {item.quantity}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {formatPrice(item.priceHT)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {formatPrice(item.totalHT)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                {selectedQuote.pdfPath && (
-                  <Button
-                    variant="outline"
-                    onClick={() => handleDownloadPDF(selectedQuote)}
-                  >
-                    <Download className="mr-2" size={16} />
-                    Télécharger PDF
-                  </Button>
-                )}
-                <Button onClick={() => setShowDetails(false)}>
-                  Fermer
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {isPreviewLoading || !selectedQuote ? (
+            <div className="text-white flex items-center">
+              <Loader2 className="mr-2 h-8 w-8 animate-spin" />
+              Chargement du devis...
+            </div>
+          ) : (
+            <QuotePreview
+              quoteData={{
+                ...selectedQuote,
+                products: selectedQuote.products.map(p => ({ ...p, product: p.product }))
+              }}
+              totals={{
+                totalHT: selectedQuote.totalHT,
+                tva: selectedQuote.totalTTC - selectedQuote.totalHT,
+                totalTTC: selectedQuote.totalTTC,
+              }}
+              onClose={() => {
+                setShowPreview(false)
+                setSelectedQuote(null)
+              }}
+              mode="view"
+            />
+          )}
         </div>
       )}
+
 
     </>
   )

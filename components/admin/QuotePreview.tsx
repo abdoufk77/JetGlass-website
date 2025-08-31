@@ -17,8 +17,8 @@ interface QuoteProduct {
   productId: string
   product?: Product
   quantity: number
-  width?: number
-  length?: number
+  width?: number | null
+  length?: number | null
   priceHT: number
   totalHT: number
 }
@@ -26,8 +26,8 @@ interface QuoteProduct {
 interface QuoteForm {
   clientName: string
   clientEmail: string
-  clientPhone: string
-  projectRef: string
+  clientPhone: string | null
+  projectRef: string | null
   products: QuoteProduct[]
 }
 
@@ -41,10 +41,11 @@ interface QuotePreviewProps {
   quoteData: QuoteForm
   totals: Totals
   onClose: () => void
-  onSave: () => Promise<void>
+  onSave?: () => Promise<void>
+  mode?: 'create' | 'view'
 }
 
-const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose, onSave }) => {
+const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose, onSave, mode = 'create' }) => {
   const previewRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -91,10 +92,17 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
   }
   
   const handleSaveQuote = async () => {
-      setIsSaving(true);
-      await onSave();
-      setIsSaving(false);
-      onClose(); // Close modal after saving
+    if (!onSave) return
+    setIsSaving(true)
+    try {
+      await onSave()
+    } catch (error) {
+      console.error('Failed to save quote:', error)
+      // Optionally, show an error to the user
+    } finally {
+      setIsSaving(false)
+      onClose() // Close modal after saving
+    }
   }
 
   const formatNumber = (num: number) => num.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -106,10 +114,12 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
         <div className="p-3 sm:p-4 border-b flex flex-col sm:flex-row justify-between items-center gap-2">
           <h2 className="text-lg sm:text-xl font-bold self-start sm:self-center">Aperçu du Devis</h2>
           <div className="flex items-center space-x-2 self-end sm:self-center">
-            <Button onClick={handleSaveQuote} disabled={isSaving || isGenerating} size="sm">
-              <Save className="mr-2" size={16} />
-              {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
-            </Button>
+            {mode === 'create' && onSave && (
+              <Button onClick={handleSaveQuote} disabled={isSaving || isGenerating} size="sm">
+                <Save className="mr-2" size={16} />
+                {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
+              </Button>
+            )}
             <Button onClick={handleDownloadPDF} disabled={isGenerating || isSaving} size="sm">
               <Download className="mr-2" size={16} />
               {isGenerating ? 'Génération...' : 'PDF'}
