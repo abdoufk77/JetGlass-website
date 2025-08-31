@@ -13,6 +13,9 @@ node_modules/
 # Production
 /build
 
+# Uploads
+/public/uploads/
+
 # Misc
 .DS_Store
 *.pem
