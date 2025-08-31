@@ -60,25 +60,15 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
 
     const imgData = canvas.toDataURL('image/png')
     const pdf = new jsPDF('p', 'mm', 'a4')
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-    const imgWidth = canvas.width
-    const imgHeight = canvas.height
-    const ratio = imgWidth / imgHeight
-    const imgHeightOnPdf = pdfWidth / ratio
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    let heightLeft = imgHeightOnPdf
-    let position = 0
+    // Fit the image to the page width
+    const imgProps = pdf.getImageProperties(imgData);
+    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeightOnPdf)
-    heightLeft -= pdfHeight
-
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeightOnPdf
-      pdf.addPage()
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeightOnPdf)
-      heightLeft -= pdfHeight
-    }
+    // Add the image, ensuring it doesn't exceed the page height
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
     
     pdf.save(`devis-${quoteData.projectRef || 'jetglass'}.pdf`)
     setIsGenerating(false)
@@ -153,43 +143,45 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
 
               {/* Products Table */}
               <div className="border-2 border-black mb-4">
-                <table className="w-full text-xs border-collapse">
+                <table className="w-full border-collapse" style={{ fontSize: '11px' }}>
                   <thead>
-                    <tr className="bg-gray-200">
-                      <th className="p-1 border-r border-black">Référence</th>
-                      <th className="p-1 border-r border-black">Désignation</th>
-                      <th className="p-1 border-r border-black">Qté</th>
-                      <th className="p-1 border-r border-black">Total M²</th>
-                      <th className="p-1 border-r border-black">PU</th>
-                      <th className="p-1">Total (HT)</th>
+                    <tr className="bg-gray-200" style={{ height: '32px' }}>
+                      <th className="px-3 py-2 border-r border-black text-center font-semibold">Référence</th>
+                      <th className="px-3 py-2 border-r border-black text-center font-semibold">Désignation</th>
+                      <th className="px-3 py-2 border-r border-black text-center font-semibold">Qté</th>
+                      <th className="px-3 py-2 border-r border-black text-center font-semibold">Total M²</th>
+                      <th className="px-3 py-2 border-r border-black text-center font-semibold">PU</th>
+                      <th className="px-3 py-2 text-center font-semibold">Total (HT)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {quoteData.products.map((item, index) => {
                       const surface = (item.width && item.length) ? (item.width * item.length) / 10000 : 0;
                       return (
-                        <tr key={index} className="border-t border-black">
-                          <td className="p-1 border-r border-black align-top">{item.product?.reference}</td>
-                          <td className="p-1 border-r border-black align-top">
-                            <p className="font-bold">{item.product?.name}</p>
-                            {item.width && item.length && <p>Dim: ({item.width}x{item.length}cm)</p>}
+                        <tr key={index} className="border-t border-black" style={{ minHeight: '40px' }}>
+                          <td className="px-3 py-3 border-r border-black text-center align-middle">{item.product?.reference}</td>
+                          <td className="px-3 py-3 border-r border-black align-middle">
+                            <div className="text-left">
+                              <p className="font-semibold leading-tight">{item.product?.name}</p>
+                              {item.width && item.length && <p className="text-gray-600 mt-1 leading-tight">Dim: ({item.width}x{item.length}cm)</p>}
+                            </div>
                           </td>
-                          <td className="p-1 border-r border-black text-center align-top">{item.quantity}</td>
-                          <td className="p-1 border-r border-black text-right align-top">{formatNumber(surface * item.quantity)}</td>
-                          <td className="p-1 border-r border-black text-right align-top">{formatNumber(item.priceHT)}</td>
-                          <td className="p-1 text-right align-top font-bold">{formatNumber(item.totalHT)}</td>
+                          <td className="px-3 py-3 border-r border-black text-center align-middle">{item.quantity}</td>
+                          <td className="px-3 py-3 border-r border-black text-center align-middle">{formatNumber(surface * item.quantity)}</td>
+                          <td className="px-3 py-3 border-r border-black text-center align-middle">{formatNumber(item.priceHT)}</td>
+                          <td className="px-3 py-3 text-center align-middle font-semibold">{formatNumber(item.totalHT)}</td>
                         </tr>
                       )
                     })}
                     {/* Add empty rows to fill the table */}
                     {Array.from({ length: Math.max(0, 15 - quoteData.products.length) }).map((_, i) => (
-                      <tr key={`empty-${i}`} className="border-t border-black h-8">
-                        <td className="border-r border-black"></td>
-                        <td className="border-r border-black"></td>
-                        <td className="border-r border-black"></td>
-                        <td className="border-r border-black"></td>
-                        <td className="border-r border-black"></td>
-                        <td></td>
+                      <tr key={`empty-${i}`} className="border-t border-black" style={{ height: '40px' }}>
+                        <td className="px-3 py-3 border-r border-black"></td>
+                        <td className="px-3 py-3 border-r border-black"></td>
+                        <td className="px-3 py-3 border-r border-black"></td>
+                        <td className="px-3 py-3 border-r border-black"></td>
+                        <td className="px-3 py-3 border-r border-black"></td>
+                        <td className="px-3 py-3"></td>
                       </tr>
                     ))}
                   </tbody>
@@ -202,18 +194,18 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
                   <div className="relative">
                     <img src="/images/stamp.png" alt="Cachet JetGlass" className="w-32 opacity-80" />
                   </div>
-                  <div className="border-2 border-black w-64">
-                    <div className="flex justify-between p-1 border-b border-black">
-                      <span>TOTAL HT</span>
-                      <span className="font-bold">{formatNumber(totals.totalHT)}</span>
+                  <div className="border-2 border-black w-80">
+                    <div className="flex justify-between px-4 py-2 border-b border-black">
+                      <span className="font-medium">TOTAL HT</span>
+                      <span className="font-bold text-right">{formatNumber(totals.totalHT)}</span>
                     </div>
-                    <div className="flex justify-between p-1 border-b border-black">
-                      <span>TVA 20%</span>
-                      <span className="font-bold">{formatNumber(totals.tva)}</span>
+                    <div className="flex justify-between px-4 py-2 border-b border-black">
+                      <span className="font-medium">TVA 20%</span>
+                      <span className="font-bold text-right">{formatNumber(totals.tva)}</span>
                     </div>
-                    <div className="flex justify-between p-1 bg-gray-200">
+                    <div className="flex justify-between px-4 py-3 bg-gray-200">
                       <span className="font-bold">Montant Total Net TTC</span>
-                      <span className="font-bold">{formatNumber(totals.totalTTC)}</span>
+                      <span className="font-bold text-right">{formatNumber(totals.totalTTC)}</span>
                     </div>
                   </div>
                 </div>
