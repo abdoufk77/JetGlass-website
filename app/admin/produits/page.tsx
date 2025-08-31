@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AdminSidebar from '@/components/admin/sidebar'
 import { Plus, Edit, Trash2, Search } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { useToast, toast } from '@/components/ui/toast'
 
 interface Category {
   id: string
@@ -36,6 +37,7 @@ interface Product {
 export default function AdminProductsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { addToast } = useToast()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -128,9 +130,23 @@ export default function AdminProductsPage() {
       if (response.ok) {
         await fetchProducts()
         resetForm()
+        addToast(toast.success(
+          editingProduct ? 'Produit modifié' : 'Produit créé',
+          editingProduct ? 'Le produit a été modifié avec succès' : 'Le nouveau produit a été créé avec succès'
+        ))
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        addToast(toast.error(
+          'Erreur',
+          errorData.error || 'Une erreur est survenue lors de la sauvegarde'
+        ))
       }
     } catch (error) {
       console.error('Error saving product:', error)
+      addToast(toast.error(
+        'Erreur de connexion',
+        'Impossible de communiquer avec le serveur'
+      ))
     }
   }
 
@@ -160,9 +176,23 @@ export default function AdminProductsPage() {
         })
         if (response.ok) {
           await fetchProducts()
+          addToast(toast.success(
+            'Produit supprimé',
+            'Le produit a été supprimé avec succès'
+          ))
+        } else {
+          const errorData = await response.json().catch(() => ({}))
+          addToast(toast.error(
+            'Erreur de suppression',
+            errorData.error || 'Impossible de supprimer ce produit'
+          ))
         }
       } catch (error) {
         console.error('Error deleting product:', error)
+        addToast(toast.error(
+          'Erreur de connexion',
+          'Impossible de communiquer avec le serveur'
+        ))
       }
     }
   }

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Plus, Trash2, Save, FileText } from 'lucide-react'
 import Link from 'next/link'
+import { useToast, toast } from '@/components/ui/toast'
 
 interface Product {
   id: string
@@ -63,6 +64,7 @@ interface QuoteForm {
 
 export default function EditQuotePage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const { addToast } = useToast()
   const [quote, setQuote] = useState<Quote | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -108,11 +110,17 @@ export default function EditQuotePage({ params }: { params: { id: string } }) {
           }))
         })
       } else {
-        alert('Erreur lors du chargement du devis')
+        addToast(toast.error(
+          'Erreur de chargement',
+          'Impossible de charger les données du devis'
+        ))
       }
     } catch (error) {
       console.error('Error fetching quote:', error)
-      alert('Erreur lors du chargement du devis')
+      addToast(toast.error(
+        'Erreur de connexion',
+        'Impossible de communiquer avec le serveur'
+      ))
     } finally {
       setLoading(false)
     }
@@ -206,13 +214,19 @@ export default function EditQuotePage({ params }: { params: { id: string } }) {
 
   const handleSubmit = async (generatePDF = false) => {
     if (!formData.clientName || !formData.clientEmail || formData.products.length === 0) {
-      alert('Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.')
+      addToast(toast.warning(
+        'Champs manquants',
+        'Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.'
+      ))
       return
     }
 
     const invalidProducts = formData.products.filter(p => !p.productId || p.quantity <= 0)
     if (invalidProducts.length > 0) {
-      alert('Veuillez sélectionner un produit et une quantité valide pour tous les articles.')
+      addToast(toast.warning(
+        'Produits invalides',
+        'Veuillez sélectionner un produit et une quantité valide pour tous les articles.'
+      ))
       return
     }
 
@@ -246,17 +260,37 @@ export default function EditQuotePage({ params }: { params: { id: string } }) {
             if (pdfData.pdfPath) {
               window.open(pdfData.pdfPath, '_blank')
             }
+            addToast(toast.success(
+              'Devis modifié avec PDF',
+              'Le devis a été modifié et le PDF généré avec succès'
+            ))
+          } else {
+            addToast(toast.success(
+              'Devis modifié',
+              'Le devis a été modifié avec succès'
+            ))
           }
+        } else {
+          addToast(toast.success(
+            'Devis modifié',
+            'Le devis a été modifié avec succès'
+          ))
         }
         router.push('/admin/devis')
       } else {
         const errorData = await response.json().catch(() => ({}))
         console.error('API Error:', errorData)
-        alert(`Erreur lors de la mise à jour du devis: ${errorData.error || 'Erreur inconnue'}`)
+        addToast(toast.error(
+          'Erreur de modification',
+          errorData.error || 'Une erreur est survenue lors de la modification du devis'
+        ))
       }
     } catch (error) {
       console.error('Error updating quote:', error)
-      alert(`Erreur lors de la mise à jour du devis: ${(error as Error).message || 'Erreur de connexion'}`)
+      addToast(toast.error(
+        'Erreur de connexion',
+        'Impossible de communiquer avec le serveur'
+      ))
     } finally {
       setSaving(false)
     }

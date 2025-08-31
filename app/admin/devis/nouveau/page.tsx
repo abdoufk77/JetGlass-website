@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Plus, Trash2, Save, FileText } from 'lucide-react'
 import Link from 'next/link'
 import QuotePreview from '@/components/admin/QuotePreview'
+import { useToast, toast } from '@/components/ui/toast'
 
 interface Product {
   id: string
@@ -46,6 +47,7 @@ interface QuoteForm {
 
 export default function NewQuotePage() {
   const router = useRouter()
+  const { addToast } = useToast()
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -151,12 +153,18 @@ export default function NewQuotePage() {
 
   const handlePreview = () => {
     if (!formData.clientName || !formData.clientEmail || formData.products.length === 0) {
-      alert('Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.')
+      addToast(toast.warning(
+        'Champs manquants',
+        'Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.'
+      ))
       return
     }
     const invalidProducts = formData.products.filter(p => !p.productId || p.quantity <= 0)
     if (invalidProducts.length > 0) {
-      alert('Veuillez sélectionner un produit et une quantité valide pour tous les articles.')
+      addToast(toast.warning(
+        'Produits invalides',
+        'Veuillez sélectionner un produit et une quantité valide pour tous les articles.'
+      ))
       return
     }
     setShowPreview(true)
@@ -165,14 +173,20 @@ export default function NewQuotePage() {
   const handleSaveQuote = async (generatePDF = false) => {
     // This function is now called from the preview modal or the simple save button
     if (!formData.clientName || !formData.clientEmail || formData.products.length === 0) {
-      alert('Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.')
+      addToast(toast.warning(
+        'Champs manquants',
+        'Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.'
+      ))
       return
     }
 
     // Validate all products have required data
     const invalidProducts = formData.products.filter(p => !p.productId || p.quantity <= 0)
     if (invalidProducts.length > 0) {
-      alert('Veuillez sélectionner un produit et une quantité valide pour tous les articles.')
+      addToast(toast.warning(
+        'Produits invalides',
+        'Veuillez sélectionner un produit et une quantité valide pour tous les articles.'
+      ))
       return
     }
 
@@ -195,15 +209,25 @@ export default function NewQuotePage() {
       })
 
       if (response.ok) {
+        addToast(toast.success(
+          'Devis créé',
+          'Le nouveau devis a été créé avec succès'
+        ))
         router.push('/admin/devis')
       } else {
         const errorData = await response.json().catch(() => ({}))
         console.error('API Error:', errorData)
-        alert(`Erreur lors de la création du devis: ${errorData.error || 'Erreur inconnue'}`)
+        addToast(toast.error(
+          'Erreur de création',
+          errorData.error || 'Une erreur est survenue lors de la création du devis'
+        ))
       }
     } catch (error) {
       console.error('Error creating quote:', error)
-      alert(`Erreur lors de la création du devis: ${error instanceof Error ? error.message : 'Erreur de connexion'}`)
+      addToast(toast.error(
+        'Erreur de connexion',
+        'Impossible de communiquer avec le serveur'
+      ))
     } finally {
       setIsLoading(false)
     }
@@ -211,14 +235,20 @@ export default function NewQuotePage() {
 
   const handleSubmit = async (generatePDF = false) => {
     if (!formData.clientName || !formData.clientEmail || formData.products.length === 0) {
-      alert('Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.')
+      addToast(toast.warning(
+        'Champs manquants',
+        'Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.'
+      ))
       return
     }
 
     // Validate all products have required data
     const invalidProducts = formData.products.filter(p => !p.productId || p.quantity <= 0)
     if (invalidProducts.length > 0) {
-      alert('Veuillez sélectionner un produit et une quantité valide pour tous les articles.')
+      addToast(toast.warning(
+        'Produits invalides',
+        'Veuillez sélectionner un produit et une quantité valide pour tous les articles.'
+      ))
       return
     }
 
@@ -244,16 +274,31 @@ export default function NewQuotePage() {
         const result = await response.json()
         if (generatePDF && result.pdfPath) {
           window.open(result.pdfPath, '_blank')
+          addToast(toast.success(
+            'Devis créé avec PDF',
+            'Le devis a été créé et le PDF généré avec succès'
+          ))
+        } else {
+          addToast(toast.success(
+            'Devis créé',
+            'Le nouveau devis a été créé avec succès'
+          ))
         }
         router.push('/admin/devis')
       } else {
         const errorData = await response.json().catch(() => ({}))
         console.error('API Error:', errorData)
-        alert(`Erreur lors de la création du devis: ${errorData.error || 'Erreur inconnue'}`)
+        addToast(toast.error(
+          'Erreur de création',
+          errorData.error || 'Une erreur est survenue lors de la création du devis'
+        ))
       }
     } catch (error) {
       console.error('Error creating quote:', error)
-      alert(`Erreur lors de la création du devis: ${error instanceof Error ? error.message : 'Erreur de connexion'}`)
+      addToast(toast.error(
+        'Erreur de connexion',
+        'Impossible de communiquer avec le serveur'
+      ))
     } finally {
       setIsLoading(false)
     }

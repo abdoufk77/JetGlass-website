@@ -8,6 +8,7 @@ import { Search, Download, Eye, Edit, Trash2, FileText, ChevronLeft, ChevronRigh
 import { formatPrice } from '@/lib/utils'
 import { Quote, QuoteProduct, Product } from '@prisma/client'
 import QuotePreview from '@/components/admin/QuotePreview'
+import { useToast, toast } from '@/components/ui/toast'
 
 type FullQuote = Quote & {
   products: (QuoteProduct & { product: Product })[];
@@ -18,6 +19,7 @@ interface DevisTableProps {
 }
 
 export default function DevisTable({ quotes }: DevisTableProps) {
+  const { addToast } = useToast()
   const [filteredQuotes, setFilteredQuotes] = useState<FullQuote[]>(quotes)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
@@ -98,12 +100,22 @@ export default function DevisTable({ quotes }: DevisTableProps) {
         const data = await response.json()
         // Refresh the page or update the quote with the new PDF path
         window.location.reload()
+        addToast(toast.success(
+          'PDF généré',
+          'Le PDF du devis a été généré avec succès'
+        ))
       } else {
-        alert('Erreur lors de la génération du PDF')
+        addToast(toast.error(
+          'Erreur de génération',
+          'Impossible de générer le PDF du devis'
+        ))
       }
     } catch (error) {
       console.error('Error generating PDF:', error)
-      alert('Erreur lors de la génération du PDF')
+      addToast(toast.error(
+        'Erreur de connexion',
+        'Impossible de communiquer avec le serveur'
+      ))
     } finally {
       setIsGeneratingPDF(null)
     }
@@ -118,12 +130,22 @@ export default function DevisTable({ quotes }: DevisTableProps) {
         
         if (response.ok) {
           window.location.reload()
+          addToast(toast.success(
+            'Devis supprimé',
+            `Le devis ${quote.quoteNumber} a été supprimé avec succès`
+          ))
         } else {
-          alert('Erreur lors de la suppression du devis')
+          addToast(toast.error(
+            'Erreur de suppression',
+            'Impossible de supprimer ce devis'
+          ))
         }
       } catch (error) {
         console.error('Error deleting quote:', error)
-        alert('Erreur lors de la suppression du devis')
+        addToast(toast.error(
+          'Erreur de connexion',
+          'Impossible de communiquer avec le serveur'
+        ))
       }
     }
   }

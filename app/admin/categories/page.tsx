@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import AdminSidebar from '@/components/admin/sidebar'
 import { Plus, Edit, Trash2, Search } from 'lucide-react'
+import { useToast, toast } from '@/components/ui/toast'
 
 interface Category {
   id: string
@@ -22,6 +23,7 @@ interface Category {
 export default function AdminCategoriesPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { addToast } = useToast()
   const [categories, setCategories] = useState<Category[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [showForm, setShowForm] = useState(false)
@@ -91,9 +93,23 @@ export default function AdminCategoriesPage() {
       if (response.ok) {
         await fetchCategories()
         resetForm()
+        addToast(toast.success(
+          editingCategory ? 'Catégorie modifiée' : 'Catégorie créée',
+          editingCategory ? 'La catégorie a été modifiée avec succès' : 'La nouvelle catégorie a été créée avec succès'
+        ))
+      } else {
+        const errorData = await response.json()
+        addToast(toast.error(
+          'Erreur',
+          errorData.error || 'Une erreur est survenue lors de la sauvegarde'
+        ))
       }
     } catch (error) {
       console.error('Error saving category:', error)
+      addToast(toast.error(
+        'Erreur de connexion',
+        'Impossible de communiquer avec le serveur'
+      ))
     }
   }
 
@@ -115,12 +131,23 @@ export default function AdminCategoriesPage() {
         })
         if (response.ok) {
           await fetchCategories()
+          addToast(toast.success(
+            'Catégorie supprimée',
+            'La catégorie a été supprimée avec succès'
+          ))
         } else {
           const error = await response.json()
-          alert(error.error)
+          addToast(toast.error(
+            'Erreur de suppression',
+            error.error || 'Impossible de supprimer cette catégorie'
+          ))
         }
       } catch (error) {
         console.error('Error deleting category:', error)
+        addToast(toast.error(
+          'Erreur de connexion',
+          'Impossible de communiquer avec le serveur'
+        ))
       }
     }
   }
