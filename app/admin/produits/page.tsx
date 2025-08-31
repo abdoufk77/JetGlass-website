@@ -63,9 +63,10 @@ export default function AdminProductsPage() {
   const fetchProducts = useCallback(async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/products')
+      const response = await fetch('/api/products?includeInactive=true')
       if (response.ok) {
         const data = await response.json()
+        console.log("Produits reçus de l'API:", data) // Ajout du log pour le débogage
         setProducts(data)
       }
     } catch (error) {

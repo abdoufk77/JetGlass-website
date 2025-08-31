@@ -6,9 +6,13 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const includeInactive = searchParams.get('includeInactive') === 'true'
+    
     const products = await prisma.product.findMany({
+      where: includeInactive ? {} : { active: true },
       select: {
         id: true,
         name: true,
@@ -18,6 +22,7 @@ export async function GET() {
         complexityFactor: true,
         thicknessFactor: true,
         minPrice: true,
+        active: true,
         dimensions: true,
         category: {
           select: {
