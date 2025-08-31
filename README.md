@@ -8,8 +8,6 @@ Un site web complet pour une société de verrerie avec système de devis automa
 - **Backend**: Next.js API Routes, Prisma ORM
 - **Base de données**: SQLite
 - **Authentification**: NextAuth.js
-- **PDF**: PDFKit pour génération de devis
-- **Email**: Nodemailer
 - **UI**: Lucide React Icons, Components UI personnalisés
 
 ## ✨ Fonctionnalités
@@ -18,8 +16,6 @@ Un site web complet pour une société de verrerie avec système de devis automa
 - 🏠 **Page d'accueil** moderne avec présentation de JetGlass
 - 📦 **Catalogue produits** avec filtres et recherche
 - 📋 **Système de devis** interactif avec sélection de produits
-- 📄 **Génération PDF automatique** des devis
-- 📧 **Envoi email automatique** au client et admin
 - 📱 **Design responsive** pour mobile et desktop
 
 ### Côté Admin
@@ -28,7 +24,6 @@ Un site web complet pour une société de verrerie avec système de devis automa
 - 🛠️ **CRUD Produits** (Créer, Lire, Modifier, Supprimer)
 - 📋 **Gestion des devis** avec changement de statut
 - ⚙️ **Paramètres société** (TVA, conditions, coordonnées)
-- 📥 **Téléchargement des PDF** de devis
 
 ## 📁 Structure du Projet
 
@@ -64,8 +59,6 @@ projet/
 ├── lib/
 │   ├── prisma.ts                 # Client Prisma
 │   ├── auth.ts                   # Configuration NextAuth
-│   ├── pdf.ts                    # Génération PDF
-│   ├── email.ts                  # Envoi emails
 │   └── utils.ts                  # Utilitaires
 ├── prisma/
 │   ├── schema.prisma             # Schéma base de données
@@ -115,12 +108,6 @@ DATABASE_URL="file:./dev.db"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="votre-clé-secrète-très-longue"
 
-# Configuration Email (Gmail)
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=587
-SMTP_USER="votre-email@gmail.com"
-SMTP_PASS="votre-mot-de-passe-app"
-
 # Admin par défaut
 ADMIN_EMAIL="admin@jetglass.com"
 ADMIN_PASSWORD="admin123"
@@ -153,13 +140,6 @@ Le site sera accessible sur [http://localhost:3000](http://localhost:3000)
 - **Email**: `admin@jetglass.com`
 - **Mot de passe**: `admin123`
 
-## 📧 Configuration Email
-
-Pour l'envoi automatique des devis par email:
-
-1. **Gmail**: Activer l'authentification à 2 facteurs
-2. **Mot de passe d'application**: Générer un mot de passe spécifique
-3. **Variables d'environnement**: Configurer `SMTP_USER` et `SMTP_PASS`
 
 ## 🎨 Personnalisation
 
@@ -213,15 +193,6 @@ Le site est entièrement responsive avec:
 - **Validation** des données côté serveur
 - **Hachage** des mots de passe avec bcrypt
 
-## 📄 Génération PDF
-
-Les devis PDF incluent:
-- **En-tête** avec logo et coordonnées
-- **Informations client** et projet
-- **Tableau produits** détaillé
-- **Calculs** HT, TVA, TTC
-- **Conditions** de vente et livraison
-- **Mentions légales**
 
 ## 🚀 Déploiement
 

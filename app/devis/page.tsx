@@ -167,7 +167,7 @@ export default function DevisPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setMessage(`Devis ${data.quoteNumber} créé avec succès ! Vous recevrez le PDF par email.`)
+        setMessage(`Devis ${data.quoteNumber} créé avec succès !`)
         setQuoteItems([])
         setClientInfo({ name: '', email: '', phone: '' })
       } else {

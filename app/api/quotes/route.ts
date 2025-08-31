@@ -5,8 +5,6 @@ export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { generateQuotePDF } from '@/lib/pdf'
-import { sendQuoteEmail } from '@/lib/email'
 import { generateQuoteNumber } from '@/lib/utils'
 
 export async function GET() {
@@ -74,7 +72,7 @@ export async function POST(request: Request) {
       totalHT, 
       totalTTC, 
       tva = 20.0,
-      generatePDF = false 
+ 
     } = data
 
     // Generate quote number
@@ -114,42 +112,11 @@ export async function POST(request: Request) {
       }
     })
 
-    let pdfPath = null
-
-    // Generate PDF if requested
-    if (generatePDF) {
-      // Get company settings
-      let companySettings = await prisma.companySettings.findFirst()
-      if (!companySettings) {
-        companySettings = await prisma.companySettings.create({
-          data: {
-            name: 'JetGlass',
-            address: '123 Rue de la Verrerie, 75001 Paris',
-            phone: '01 23 45 67 89',
-            email: 'contact@jetglass.fr',
-            website: 'www.jetglass.fr'
-          }
-        })
-      }
-
-      // Generate PDF
-      pdfPath = await generateQuotePDF(quote, companySettings)
-
-      // Update quote with PDF path
-      await prisma.quote.update({
-        where: { id: quote.id },
-        data: { pdfPath }
-      })
-
-      // Optionally send email (commented out for admin creation)
-      // await sendQuoteEmail(clientEmail, clientName, quoteNumber, pdfPath)
-    }
 
     return NextResponse.json({
       message: 'Quote created successfully',
       quoteNumber,
-      pdfPath,
-      quote: { ...quote, pdfPath }
+      quote
     }, { status: 201 })
   } catch (error) {
     console.error('Error creating quote:', error)

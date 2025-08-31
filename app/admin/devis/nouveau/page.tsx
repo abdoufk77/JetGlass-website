@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Plus, Trash2, Save, FileText } from 'lucide-react'
 import Link from 'next/link'
+import QuotePreview from '@/components/admin/QuotePreview'
 
 interface Product {
   id: string
@@ -47,6 +48,7 @@ export default function NewQuotePage() {
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const [formData, setFormData] = useState<QuoteForm>({
     clientName: '',
     clientEmail: '',
@@ -147,6 +149,66 @@ export default function NewQuotePage() {
     return { totalHT, tva, totalTTC }
   }
 
+  const handlePreview = () => {
+    if (!formData.clientName || !formData.clientEmail || formData.products.length === 0) {
+      alert('Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.')
+      return
+    }
+    const invalidProducts = formData.products.filter(p => !p.productId || p.quantity <= 0)
+    if (invalidProducts.length > 0) {
+      alert('Veuillez sélectionner un produit et une quantité valide pour tous les articles.')
+      return
+    }
+    setShowPreview(true)
+  }
+
+  const handleSaveQuote = async (generatePDF = false) => {
+    // This function is now called from the preview modal or the simple save button
+    if (!formData.clientName || !formData.clientEmail || formData.products.length === 0) {
+      alert('Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.')
+      return
+    }
+
+    // Validate all products have required data
+    const invalidProducts = formData.products.filter(p => !p.productId || p.quantity <= 0)
+    if (invalidProducts.length > 0) {
+      alert('Veuillez sélectionner un produit et une quantité valide pour tous les articles.')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const { totalHT, totalTTC } = calculateTotals()
+      
+      const quoteData = {
+        ...formData,
+        totalHT,
+        totalTTC,
+        tva: 20,
+        generatePDF: false // PDF is now client-side, this can be removed or repurposed
+      }
+
+      const response = await fetch('/api/quotes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(quoteData)
+      })
+
+      if (response.ok) {
+        router.push('/admin/devis')
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('API Error:', errorData)
+        alert(`Erreur lors de la création du devis: ${errorData.error || 'Erreur inconnue'}`)
+      }
+    } catch (error) {
+      console.error('Error creating quote:', error)
+      alert(`Erreur lors de la création du devis: ${error instanceof Error ? error.message : 'Erreur de connexion'}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleSubmit = async (generatePDF = false) => {
     if (!formData.clientName || !formData.clientEmail || formData.products.length === 0) {
       alert('Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.')
@@ -200,7 +262,16 @@ export default function NewQuotePage() {
   const { totalHT, tva, totalTTC } = calculateTotals()
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <>
+      {showPreview && (
+        <QuotePreview 
+          quoteData={formData}
+          totals={calculateTotals()}
+          onClose={() => setShowPreview(false)}
+          onSave={() => handleSaveQuote(false)}
+        />
+      )}
+      <div className="flex h-screen bg-gray-100">
       <AdminSidebar />
       <div className="flex-1 overflow-auto">
         <div className="p-8">
@@ -221,18 +292,18 @@ export default function NewQuotePage() {
             <div className="flex space-x-2">
               <Button 
                 variant="outline" 
-                onClick={() => handleSubmit(false)}
+                onClick={() => handleSaveQuote(false)}
                 disabled={isLoading}
               >
                 <Save className="mr-2" size={16} />
                 Enregistrer
               </Button>
               <Button 
-                onClick={() => handleSubmit(true)}
+                onClick={handlePreview}
                 disabled={isLoading}
               >
                 <FileText className="mr-2" size={16} />
-                Créer & Générer PDF
+                Preview PDF
               </Button>
             </div>
           </div>
@@ -272,7 +343,7 @@ export default function NewQuotePage() {
                       <Input
                         value={formData.clientPhone}
                         onChange={(e) => setFormData(prev => ({ ...prev, clientPhone: e.target.value }))}
-                        placeholder="+33 6 12 34 56 78"
+                        placeholder="+212 6 12 34 56 78"
                       />
                     </div>
                     <div>
@@ -452,7 +523,7 @@ export default function NewQuotePage() {
                   <p>• Les prix sont calculés automatiquement selon les dimensions</p>
                   <p>• Le prix minimum par produit est respecté</p>
                   <p>• TVA de 20% appliquée</p>
-                  <p>• Le PDF sera généré avec le logo et les informations de l'entreprise</p>
+                  <p>• Le préview PDF permet de visualiser avant finalisation</p>
                 </CardContent>
               </Card>
             </div>
@@ -460,5 +531,6 @@ export default function NewQuotePage() {
         </div>
       </div>
     </div>
+   </>
   )
 }

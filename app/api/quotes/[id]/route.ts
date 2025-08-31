@@ -5,7 +5,6 @@ export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { generateQuotePDF } from '@/lib/pdf'
 
 export async function GET(
   request: Request,
