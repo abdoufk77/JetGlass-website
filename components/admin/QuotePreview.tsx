@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { Button } from '@/components/ui/button'
@@ -48,6 +48,22 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
   const previewRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [cachetUrl, setCachetUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        if (response.ok) {
+          const settings = await response.json()
+          setCachetUrl(settings?.cachetUrl || null)
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des paramètres:', error)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   const handleDownloadPDF = async () => {
     if (!previewRef.current) return
@@ -192,7 +208,13 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
               <footer className="text-xs">
                 <div className="flex justify-between items-start">
                   <div className="relative">
-                    <img src="/images/stamp.png" alt="Cachet JetGlass" className="w-32 opacity-80" />
+                    {cachetUrl ? (
+                      <img src={cachetUrl} alt="Cachet JetGlass" className="w-32 h-24 object-contain opacity-80" />
+                    ) : (
+                      <div className="w-32 h-24 border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">
+                        Cachet entreprise
+                      </div>
+                    )}
                   </div>
                   <div className="border-2 border-black w-80">
                     <div className="flex justify-between px-4 py-2 border-b border-black">

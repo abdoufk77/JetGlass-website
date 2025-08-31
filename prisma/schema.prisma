@@ -69,6 +69,7 @@ model Quote {
   totalTTC      Float
   tva           Float    @default(20.0)
   notes         String?
+  pdfPath       String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -113,6 +114,8 @@ model CompanySettings {
   paymentTerms    String  @default("50% à la commande, 50% à l'enlèvement")
   deliveryTerms   String  @default("1 semaine pour les produits standards, 4 semaines pour les produits spéciaux")
   legalNotice     String  @default("Prière de vérifier les dimensions chiffrées sur ce devis avant fabrication")
+  cachetUrl       String?
+  cachetFileName  String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

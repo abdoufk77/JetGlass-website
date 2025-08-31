@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import AdminSidebar from '@/components/admin/sidebar'
 import { Save, Upload } from 'lucide-react'
+import CachetUpload from '@/components/admin/CachetUpload'
 
 interface CompanySettings {
   id?: string
@@ -28,6 +29,8 @@ interface CompanySettings {
   deliveryTerms: string
   legalNotice: string
   paymentTerms: string
+  cachetUrl?: string | null
+  cachetFileName?: string | null
 }
 
 export default function AdminSettingsPage() {
@@ -266,6 +269,19 @@ export default function AdminSettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Cachet Upload */}
+            <CachetUpload
+              currentCachetUrl={settings.cachetUrl}
+              onUploadSuccess={(cachetUrl) => {
+                setSettings(prev => ({ ...prev, cachetUrl }))
+                setMessage('Cachet uploadé avec succès')
+              }}
+              onDeleteSuccess={() => {
+                setSettings(prev => ({ ...prev, cachetUrl: null, cachetFileName: null }))
+                setMessage('Cachet supprimé avec succès')
+              }}
+            />
 
             {/* Quote Settings */}
             <Card>
