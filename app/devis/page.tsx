@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatPrice } from '@/lib/utils'
 import { pageCache, CACHE_KEYS } from '@/lib/cache'
+import { calculatePrice } from '@/lib/pricing'
 import { Plus, Minus, Trash2, Send, Loader2 } from 'lucide-react'
+import QuotePreview from '@/components/admin/QuotePreview'
 
 interface Category {
   id: string
@@ -23,6 +25,7 @@ interface Product {
   complexityFactor: number
   thicknessFactor: number
   minPrice: number
+  thickness?: number
   dimensions?: string
 }
 
@@ -48,6 +51,7 @@ export default function DevisPage() {
   const [message, setMessage] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const productsPerPage = 6
+  const [isPreviewing, setIsPreviewing] = useState(false)
 
   useEffect(() => {
     loadProducts()
@@ -64,6 +68,7 @@ export default function DevisPage() {
       pageCache.set(CACHE_KEYS.DEVIS_FORM, clientInfo, 30) // Cache for 30 minutes
     }
   }, [clientInfo])
+
 
   const loadProducts = async () => {
     setIsLoading(true)
@@ -130,14 +135,7 @@ export default function DevisPage() {
     setQuoteItems(items => items.filter(item => item.productId !== productId))
   }
 
-  const calculateTotal = () => {
-    // Pour l'instant, on ne calcule pas les prix automatiquement
-    // Le devis sera calculé manuellement par l'admin
-    return { totalHT: 0, tva: 0, totalTTC: 0 }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleConfirmQuote = async () => {
     if (quoteItems.length === 0) {
       setMessage('Veuillez ajouter au moins un produit à votre devis')
       return
@@ -147,29 +145,40 @@ export default function DevisPage() {
     setMessage('')
 
     try {
-      const { totalHT, totalTTC } = calculateTotal()
+      const { products, clientName, clientEmail, clientPhone } = quoteDataForPreview;
+
+      const totalHT = products.reduce((acc, item) => acc + item.totalHT, 0);
+      const tva = totalHT * 0.2;
+      const totalTTC = totalHT + tva;
+
       const response = await fetch('/api/quotes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          clientName: clientInfo.name,
-          clientEmail: clientInfo.email,
-          clientPhone: clientInfo.phone,
-          products: quoteItems.map(item => ({
+          clientName,
+          clientEmail,
+          clientPhone,
+          products: products.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
             width: item.width,
             length: item.length,
-            thickness: item.thickness
+            thickness: item.thickness,
+            priceHT: item.priceHT,
+            totalHT: item.totalHT
           })),
+          totalHT,
+          tva,
+          totalTTC
         })
-      })
+      });
 
       if (response.ok) {
         const data = await response.json()
         setMessage(`Devis ${data.quoteNumber} créé avec succès !`)
         setQuoteItems([])
         setClientInfo({ name: '', email: '', phone: '' })
+        setIsPreviewing(false)
       } else {
         const error = await response.json()
         setMessage(`Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
@@ -181,7 +190,19 @@ export default function DevisPage() {
     }
   }
 
-  const { totalHT, tva, totalTTC } = calculateTotal()
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (quoteItems.length === 0) {
+      setMessage('Veuillez ajouter au moins un produit à votre devis')
+      return
+    }
+    if (!clientInfo.name || !clientInfo.email) {
+      setMessage('Veuillez renseigner votre nom et votre email.')
+      return
+    }
+    setIsPreviewing(true)
+  }
+
 
   // Pagination logic
   const totalPages = Math.ceil(products.length / productsPerPage)
@@ -192,6 +213,34 @@ export default function DevisPage() {
   const goToPage = (page: number) => {
     setCurrentPage(page)
   }
+
+  const quoteDataForPreview = {
+    clientName: clientInfo.name,
+    clientEmail: clientInfo.email,
+    clientPhone: clientInfo.phone,
+    products: quoteItems.map(item => {
+      const product = products.find(p => p.id === item.productId);
+      if (!product) return null;
+
+      const dimensions = {
+        width: item.width || 0,
+        length: item.length || 0,
+        thickness: item.thickness || 0
+      };
+
+      const totalHT = calculatePrice(product, dimensions, item.quantity);
+      const priceHT = item.quantity > 0 ? totalHT / item.quantity : 0;
+
+      return {
+        ...item,
+        product,
+        priceHT,
+        totalHT
+      };
+    }).filter(Boolean) as (QuoteItem & { product: Product; priceHT: number; totalHT: number; })[],
+    status: 'DRAFT' as const,
+    projectRef: '',
+  };
 
   return (
     <div className="py-12">
@@ -474,6 +523,17 @@ export default function DevisPage() {
 
         </div>
       </div>
+
+      {isPreviewing && (
+        <QuotePreview
+          isOpen={isPreviewing}
+          onClose={() => setIsPreviewing(false)}
+          quoteData={quoteDataForPreview}
+          mode="create"
+          onConfirm={handleConfirmQuote}
+          isSubmitting={isSubmitting}
+        />
+      )}
     </div>
   )
 }

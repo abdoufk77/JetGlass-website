@@ -9,8 +9,22 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
-      include: {
-        category: true
+      select: {
+        id: true,
+        name: true,
+        reference: true,
+        categoryId: true,
+        basePricePerM2: true,
+        complexityFactor: true,
+        thicknessFactor: true,
+        minPrice: true,
+        dimensions: true,
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
       },
       orderBy: { name: 'asc' }
     })

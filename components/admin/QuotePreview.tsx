@@ -4,13 +4,19 @@ import React, { useRef, useState, useEffect } from 'react'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { Button } from '@/components/ui/button'
-import { Download, X, Save } from 'lucide-react'
+import { Download, X, Save, CheckCircle, MessageSquareWarning, Loader2, Send } from 'lucide-react'
+import { formatPrice } from '@/lib/utils'
 
 // Define interfaces based on NewQuotePage
 interface Product {
-  id: string
-  reference: string
-  name: string
+  id: string;
+  reference: string;
+  name: string;
+  basePricePerM2: number;
+  complexityFactor: number;
+  thicknessFactor: number;
+  minPrice: number;
+  thickness?: number;
 }
 
 interface QuoteProduct {
@@ -38,17 +44,43 @@ interface Totals {
 }
 
 interface QuotePreviewProps {
-  quoteData: QuoteForm
-  totals: Totals
-  onClose: () => void
-  onSave?: () => Promise<void>
-  mode?: 'create' | 'view'
+  isOpen: boolean;
+  quoteData: QuoteForm;
+  onClose: () => void;
+  onSave?: () => Promise<void>;
+  mode?: 'create' | 'view';
+  isClientView?: boolean;
+  onAccept?: () => Promise<void>;
+  onNegotiate?: () => Promise<void>;
+  quoteId?: string;
+  quoteStatus?: string;
+  onConfirm?: () => void;
+  isSubmitting?: boolean;
 }
 
-const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose, onSave, mode = 'create' }) => {
+const QuotePreview: React.FC<QuotePreviewProps> = ({ 
+  quoteData, 
+  onClose, 
+  onSave, 
+  mode = 'create', 
+  isClientView = false,
+  onAccept,
+  onNegotiate,
+  quoteId,
+  quoteStatus,
+  onConfirm,
+  isSubmitting
+}) => {
+  const totals = {
+    totalHT: quoteData.products.reduce((acc, item) => acc + (item.totalHT || 0), 0),
+    tva: quoteData.products.reduce((acc, item) => acc + (item.totalHT || 0), 0) * 0.2,
+    totalTTC: quoteData.products.reduce((acc, item) => acc + (item.totalHT || 0), 0) * 1.2
+  };
   const previewRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isAccepting, setIsAccepting] = useState(false)
+  const [isNegotiating, setIsNegotiating] = useState(false)
   const [cachetUrl, setCachetUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -105,7 +137,6 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
     }
   }
 
-  const formatNumber = (num: number) => num.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-2 sm:p-4 font-sans">
@@ -113,17 +144,56 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
         {/* Modal Header */}
         <div className="p-3 sm:p-4 border-b flex flex-col sm:flex-row justify-between items-center gap-2">
           <h2 className="text-lg sm:text-xl font-bold self-start sm:self-center">Aperçu du Devis</h2>
-          <div className="flex items-center space-x-2 self-end sm:self-center">
-            {mode === 'create' && onSave && (
-              <Button onClick={handleSaveQuote} disabled={isSaving || isGenerating} size="sm">
-                <Save className="mr-2" size={16} />
-                {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
-              </Button>
+                    <div className="flex items-center space-x-2 self-end sm:self-center">
+            {isClientView ? (
+              <div className="flex items-center space-x-2">
+                {quoteStatus === 'PENDING' && (
+                  <>
+                    <Button 
+                      onClick={onAccept} 
+                      disabled={isAccepting || isNegotiating || isGenerating}
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                      size="sm"
+                    >
+                      {isAccepting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2" size={16} />}
+                      Accepter
+                    </Button>
+                    <Button 
+                      onClick={onNegotiate} 
+                      disabled={isAccepting || isNegotiating || isGenerating}
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                      size="sm"
+                    >
+                      {isNegotiating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MessageSquareWarning className="mr-2" size={16} />}
+                      Négocier
+                    </Button>
+                  </>
+                )}
+                <Button onClick={handleDownloadPDF} disabled={isGenerating || isAccepting || isNegotiating} size="sm">
+                  <Download className="mr-2" size={16} />
+                  {isGenerating ? 'Génération...' : 'Télécharger PDF'}
+                </Button>
+              </div>
+            ) : (
+              <>
+                {mode === 'create' && onConfirm && (
+                  <Button onClick={onConfirm} disabled={isSubmitting || isGenerating} size="sm">
+                    <Send className="mr-2" size={16} />
+                    {isSubmitting ? 'Envoi en cours...' : 'Confirmer et Envoyer'}
+                  </Button>
+                )}
+                {mode === 'create' && onSave && (
+                  <Button onClick={handleSaveQuote} disabled={isSaving || isGenerating} size="sm">
+                    <Save className="mr-2" size={16} />
+                    {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
+                  </Button>
+                )}
+                <Button onClick={handleDownloadPDF} disabled={isGenerating || isSaving} size="sm">
+                  <Download className="mr-2" size={16} />
+                  {isGenerating ? 'Génération...' : 'PDF'}
+                </Button>
+              </>
             )}
-            <Button onClick={handleDownloadPDF} disabled={isGenerating || isSaving} size="sm">
-              <Download className="mr-2" size={16} />
-              {isGenerating ? 'Génération...' : 'PDF'}
-            </Button>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X size={20} />
             </Button>
@@ -193,9 +263,9 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
                             </div>
                           </td>
                           <td className="px-3 py-3 border-r border-black text-center align-middle">{item.quantity}</td>
-                          <td className="px-3 py-3 border-r border-black text-center align-middle">{formatNumber(surface * item.quantity)}</td>
-                          <td className="px-3 py-3 border-r border-black text-center align-middle">{formatNumber(item.priceHT)}</td>
-                          <td className="px-3 py-3 text-center align-middle font-semibold">{formatNumber(item.totalHT)}</td>
+                          <td className="px-3 py-3 border-r border-black text-center align-middle">{formatPrice(surface * item.quantity)}</td>
+                          <td className="px-3 py-3 border-r border-black text-center align-middle">{formatPrice(item.priceHT)}</td>
+                          <td className="px-3 py-3 text-center align-middle font-semibold">{formatPrice(item.totalHT)}</td>
                         </tr>
                       )
                     })}
@@ -229,15 +299,15 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({ quoteData, totals, onClose,
                   <div className="border-2 border-black w-80">
                     <div className="flex justify-between px-4 py-2 border-b border-black">
                       <span className="font-medium">TOTAL HT</span>
-                      <span className="font-bold text-right">{formatNumber(totals.totalHT)}</span>
+                      <span className="font-bold text-right">{formatPrice(totals.totalHT)}</span>
                     </div>
                     <div className="flex justify-between px-4 py-2 border-b border-black">
                       <span className="font-medium">TVA 20%</span>
-                      <span className="font-bold text-right">{formatNumber(totals.tva)}</span>
+                      <span className="font-bold text-right">{formatPrice(totals.tva)}</span>
                     </div>
                     <div className="flex justify-between px-4 py-3 bg-gray-200">
                       <span className="font-bold">Montant Total Net TTC</span>
-                      <span className="font-bold text-right">{formatNumber(totals.totalTTC)}</span>
+                      <span className="font-bold text-right">{formatPrice(totals.totalTTC)}</span>
                     </div>
                   </div>
                 </div>
