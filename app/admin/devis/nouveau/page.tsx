@@ -170,9 +170,9 @@ export default function NewQuotePage() {
     setShowPreview(true)
   }
 
-  const handleSaveQuote = async (generatePDF = false) => {
-    // This function is now called from the preview modal or the simple save button
-    if (!formData.clientName || !formData.clientEmail || formData.products.length === 0) {
+  const handleSaveQuote = async (quotePayload: any, requestedStatus?: 'VALIDATED' | 'PENDING') => {
+    // This function is now called from the preview modal
+    if (!quotePayload.clientName || !quotePayload.clientEmail || quotePayload.products.length === 0) {
       addToast(toast.warning(
         'Champs manquants',
         'Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.'
@@ -181,7 +181,7 @@ export default function NewQuotePage() {
     }
 
     // Validate all products have required data
-    const invalidProducts = formData.products.filter(p => !p.productId || p.quantity <= 0)
+    const invalidProducts = quotePayload.products.filter((p: QuoteProduct) => !p.productId || p.quantity <= 0)
     if (invalidProducts.length > 0) {
       addToast(toast.warning(
         'Produits invalides',
@@ -189,101 +189,50 @@ export default function NewQuotePage() {
       ))
       return
     }
-
     setIsLoading(true)
     try {
-      const { totalHT, totalTTC } = calculateTotals()
-      
-      const quoteData = {
-        ...formData,
-        totalHT,
-        totalTTC,
-        tva: 20,
-        generatePDF: false // PDF is now client-side, this can be removed or repurposed
-      }
+      // Normalize and log payload (force requestedStatus if provided)
+      const effectiveStatus = String((requestedStatus ?? quotePayload.status ?? 'PENDING')).toUpperCase() as 'VALIDATED' | 'PENDING'
+      const dataToSend = { ...quotePayload, status: effectiveStatus, tva: 20.0 };
+      console.log('[CREATE QUOTE] Sending payload:', dataToSend);
+      addToast(toast.info('Création en cours', `Statut envoyé: ${dataToSend.status}`))
 
       const response = await fetch('/api/quotes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(quoteData)
+        body: JSON.stringify(dataToSend)
       })
 
       if (response.ok) {
-        addToast(toast.success(
-          'Devis créé',
-          'Le nouveau devis a été créé avec succès'
-        ))
-        router.push('/admin/devis')
-      } else {
-        const errorData = await response.json().catch(() => ({}))
-        console.error('API Error:', errorData)
-        addToast(toast.error(
-          'Erreur de création',
-          errorData.error || 'Une erreur est survenue lors de la création du devis'
-        ))
-      }
-    } catch (error) {
-      console.error('Error creating quote:', error)
-      addToast(toast.error(
-        'Erreur de connexion',
-        'Impossible de communiquer avec le serveur'
-      ))
-    } finally {
-      setIsLoading(false)
-    }
-  }
+        const resJson = await response.json().catch(() => ({} as any))
+        console.log('[CREATE QUOTE] API response:', resJson)
+        const createdId = resJson?.quote?.id
+        const savedStatus = resJson?.quote?.status
+        const requested = dataToSend.status
+        addToast(toast.success('Devis créé', `Statut enregistré: ${savedStatus || requested}`))
 
-  const handleSubmit = async (generatePDF = false) => {
-    if (!formData.clientName || !formData.clientEmail || formData.products.length === 0) {
-      addToast(toast.warning(
-        'Champs manquants',
-        'Veuillez remplir tous les champs obligatoires et ajouter au moins un produit.'
-      ))
-      return
-    }
-
-    // Validate all products have required data
-    const invalidProducts = formData.products.filter(p => !p.productId || p.quantity <= 0)
-    if (invalidProducts.length > 0) {
-      addToast(toast.warning(
-        'Produits invalides',
-        'Veuillez sélectionner un produit et une quantité valide pour tous les articles.'
-      ))
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const { totalHT, totalTTC } = calculateTotals()
-      
-      const quoteData = {
-        ...formData,
-        totalHT,
-        totalTTC,
-        tva: 20,
-        generatePDF
-      }
-
-      const response = await fetch('/api/quotes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(quoteData)
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        if (generatePDF && result.pdfPath) {
-          window.open(result.pdfPath, '_blank')
-          addToast(toast.success(
-            'Devis créé avec PDF',
-            'Le devis a été créé et le PDF généré avec succès'
-          ))
-        } else {
-          addToast(toast.success(
-            'Devis créé',
-            'Le nouveau devis a été créé avec succès'
-          ))
+        // Fallback: enforce requested status if different
+        if (createdId && savedStatus && requested && savedStatus !== requested) {
+          console.warn('[CREATE QUOTE] Mismatch status. Enforcing...', { createdId, savedStatus, requestedStatus: requested })
+          try {
+            const putRes = await fetch(`/api/quotes/${createdId}/status`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: requested })
+            })
+            if (putRes.ok) {
+              addToast(toast.success('Statut corrigé', `Passé à ${requested}`))
+            } else {
+              const err = await putRes.json().catch(() => ({}))
+              console.error('[CREATE QUOTE] Failed to enforce status:', err)
+              addToast(toast.warning('Statut non corrigé', `Raison: ${err?.error || 'inconnue'}`))
+            }
+          } catch (enfErr) {
+            console.error('[CREATE QUOTE] Error enforcing status:', enfErr)
+          }
         }
+
+        setShowPreview(false)
         router.push('/admin/devis')
       } else {
         const errorData = await response.json().catch(() => ({}))
@@ -303,6 +252,19 @@ export default function NewQuotePage() {
       setIsLoading(false)
     }
   }
+
+  const handleConfirmQuote = async (status: 'VALIDATED' | 'PENDING') => {
+    console.log('[CONFIRM] Requested status:', status)
+    const { totalHT, totalTTC } = calculateTotals();
+    const quoteData = {
+      ...formData,
+      totalHT,
+      totalTTC,
+      tva: 20.0,
+      status: status,
+    };
+    await handleSaveQuote(quoteData, status);
+  };
 
   const { totalHT, tva, totalTTC } = calculateTotals()
 
@@ -310,10 +272,10 @@ export default function NewQuotePage() {
     <>
       {showPreview && (
         <QuotePreview 
+          isOpen={showPreview}
           quoteData={formData}
-          totals={calculateTotals()}
           onClose={() => setShowPreview(false)}
-          onSave={() => handleSaveQuote(false)}
+          onConfirm={handleConfirmQuote}
         />
       )}
       <div className="flex h-screen bg-gray-100">
@@ -335,14 +297,6 @@ export default function NewQuotePage() {
               </div>
             </div>
             <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                onClick={() => handleSaveQuote(false)}
-                disabled={isLoading}
-              >
-                <Save className="mr-2" size={16} />
-                Enregistrer
-              </Button>
               <Button 
                 onClick={handlePreview}
                 disabled={isLoading}

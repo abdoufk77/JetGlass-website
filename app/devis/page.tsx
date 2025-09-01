@@ -135,7 +135,7 @@ export default function DevisPage() {
     setQuoteItems(items => items.filter(item => item.productId !== productId))
   }
 
-  const handleConfirmQuote = async () => {
+  const handleConfirmQuote = async (status: 'VALIDATED' | 'PENDING') => {
     if (quoteItems.length === 0) {
       setMessage('Veuillez ajouter au moins un produit à votre devis')
       return
@@ -145,6 +145,7 @@ export default function DevisPage() {
     setMessage('')
 
     try {
+      console.log('[PUBLIC CONFIRM] Requested status:', status)
       const { products, clientName, clientEmail, clientPhone } = quoteDataForPreview;
 
       const totalHT = products.reduce((acc, item) => acc + item.totalHT, 0);
@@ -169,12 +170,14 @@ export default function DevisPage() {
           })),
           totalHT,
           tva,
-          totalTTC
+          totalTTC,
+          status: String(status || 'PENDING').toUpperCase()
         })
       });
 
       if (response.ok) {
         const data = await response.json()
+        console.log('[PUBLIC CREATE] API response:', data)
         setMessage(`Devis ${data.quoteNumber} créé avec succès !`)
         setQuoteItems([])
         setClientInfo({ name: '', email: '', phone: '' })
@@ -238,7 +241,7 @@ export default function DevisPage() {
         totalHT
       };
     }).filter(Boolean) as (QuoteItem & { product: Product; priceHT: number; totalHT: number; })[],
-    status: 'DRAFT' as const,
+    status: 'PENDING' as const,
     projectRef: '',
   };
 

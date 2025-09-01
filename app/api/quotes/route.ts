@@ -62,6 +62,7 @@ export async function DELETE(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json()
+    console.log('[API/quotes] raw body:', data)
     const { 
       clientName, 
       clientEmail, 
@@ -72,11 +73,19 @@ export async function POST(request: Request) {
       totalHT, 
       totalTTC, 
       tva = 20.0,
- 
+      status
     } = data
 
     // Generate quote number
     const quoteNumber = generateQuoteNumber()
+
+    // Sanitize status (fallback if status is nested or missing)
+    const candidate = (typeof status === 'string' ? status : (typeof (data as any)?.quoteData?.status === 'string' ? (data as any).quoteData.status : undefined))
+    const rawStatus = typeof candidate === 'string' ? candidate : ''
+    const normalizedStatus = rawStatus.trim().toUpperCase()
+    const allowed = ['PENDING', 'VALIDATED', 'REJECTED']
+    const finalStatus = allowed.includes(normalizedStatus) ? normalizedStatus : 'PENDING'
+    console.log('[API/quotes] incoming status:', status, 'normalized:', normalizedStatus, '=> saved as:', finalStatus)
 
     // Create quote in database
     const quote = await prisma.quote.create({
@@ -90,7 +99,7 @@ export async function POST(request: Request) {
         totalHT: totalHT || 0,
         totalTTC: totalTTC || 0,
         tva: tva,
-        status: 'PENDING',
+        status: finalStatus,
         products: {
           create: products.map((item: any) => ({
             productId: item.productId,

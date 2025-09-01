@@ -124,4 +124,8 @@ model CompanySettings {
 
 // Note: SQLite doesn't support enums, using String with validation in application layer
 // Valid Role values: "ADMIN", "USER"
-// Valid QuoteStatus values: "PENDING", "VALIDATED", "REJECTED", "SENT"
+enum QuoteStatus {
+  PENDING
+  VALIDATED
+  REJECTED
+}

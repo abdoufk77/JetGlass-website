@@ -54,7 +54,7 @@ interface QuotePreviewProps {
   onNegotiate?: () => Promise<void>;
   quoteId?: string;
   quoteStatus?: string;
-  onConfirm?: () => void;
+  onConfirm?: (status: 'VALIDATED' | 'PENDING') => Promise<void>;
   isSubmitting?: boolean;
 }
 
@@ -81,6 +81,8 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({
   const [isSaving, setIsSaving] = useState(false)
   const [isAccepting, setIsAccepting] = useState(false)
   const [isNegotiating, setIsNegotiating] = useState(false)
+  const [isValidating, setIsValidating] = useState(false)
+  const [isPending, setIsPending] = useState(false)
   const [cachetUrl, setCachetUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -177,10 +179,40 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({
             ) : (
               <>
                 {mode === 'create' && onConfirm && (
-                  <Button onClick={onConfirm} disabled={isSubmitting || isGenerating} size="sm">
-                    <Send className="mr-2" size={16} />
-                    {isSubmitting ? 'Envoi en cours...' : 'Confirmer et Envoyer'}
-                  </Button>
+                  <>
+                    <Button 
+                      onClick={async () => {
+                        setIsValidating(true)
+                        try {
+                          await onConfirm('VALIDATED')
+                        } finally {
+                          setIsValidating(false)
+                        }
+                      }} 
+                      disabled={isValidating || isPending || isGenerating} 
+                      size="sm"
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      {isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2" size={16} />}
+                      Accepter
+                    </Button>
+                    <Button 
+                      onClick={async () => {
+                        setIsPending(true)
+                        try {
+                          await onConfirm('PENDING')
+                        } finally {
+                          setIsPending(false)
+                        }
+                      }} 
+                      disabled={isValidating || isPending || isGenerating} 
+                      size="sm"
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                    >
+                      {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MessageSquareWarning className="mr-2" size={16} />}
+                      Négocier
+                    </Button>
+                  </>
                 )}
                 {mode === 'create' && onSave && (
                   <Button onClick={handleSaveQuote} disabled={isSaving || isGenerating} size="sm">

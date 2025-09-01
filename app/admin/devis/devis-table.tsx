@@ -200,7 +200,6 @@ export default function DevisTable({ quotes }: DevisTableProps) {
           <option value="PENDING">En attente</option>
           <option value="VALIDATED">Validé</option>
           <option value="REJECTED">Rejeté</option>
-          <option value="SENT">Envoyé</option>
         </select>
 
         <div className="text-sm text-gray-600 flex items-center justify-end">
@@ -392,14 +391,10 @@ export default function DevisTable({ quotes }: DevisTableProps) {
             </div>
           ) : (
             <QuotePreview
+              isOpen={showPreview}
               quoteData={{
                 ...selectedQuote,
                 products: selectedQuote.products.map(p => ({ ...p, product: p.product }))
-              }}
-              totals={{
-                totalHT: selectedQuote.totalHT,
-                tva: selectedQuote.totalTTC - selectedQuote.totalHT,
-                totalTTC: selectedQuote.totalTTC,
               }}
               onClose={() => {
                 setShowPreview(false)

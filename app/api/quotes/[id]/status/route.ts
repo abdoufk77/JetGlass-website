@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 const statusSchema = z.object({
-  status: z.enum(['ACCEPTED', 'PENDING']),
+  status: z.enum(['VALIDATED', 'PENDING', 'REJECTED']),
 });
 
 type StatusUpdateBody = z.infer<typeof statusSchema>;
@@ -20,7 +20,7 @@ export async function PUT(
 
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid status provided. Must be ACCEPTED or PENDING.' },
+        { error: 'Invalid status provided. Must be VALIDATED, PENDING, or REJECTED.' },
         { status: 400 }
       );
     }
