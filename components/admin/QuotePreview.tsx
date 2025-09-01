@@ -44,7 +44,7 @@ interface Totals {
 }
 
 interface QuotePreviewProps {
-  isOpen: boolean;
+  isOpen?: boolean;
   quoteData: QuoteForm;
   onClose: () => void;
   onSave?: () => Promise<void>;

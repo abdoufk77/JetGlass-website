@@ -97,11 +97,6 @@ export default function QuotePage() {
           ...quote,
           products: quote.products.map((p: any) => ({ ...p, product: p.product }))
         }}
-        totals={{
-          totalHT: quote.totalHT,
-          tva: quote.totalTTC - quote.totalHT,
-          totalTTC: quote.totalTTC,
-        }}
         onClose={() => { 
           // Rediriger ou afficher un message de confirmation
                               addToast({ title: 'Fermeture', description: 'Vous avez fermé l\'aperçu du devis.', type: 'info' });
