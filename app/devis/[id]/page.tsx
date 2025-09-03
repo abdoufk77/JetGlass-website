@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import QuotePreview from '@/components/admin/QuotePreview'
 import { useToast } from '@/components/ui/toast'
+import { sendQuoteActionNotification } from '@/lib/notifications'
 
 // TODO: Remplacer par le vrai type de devis
 type FullQuote = any;
@@ -39,6 +40,10 @@ export default function QuotePage() {
 
   const handleUpdateStatus = async (status: 'ACCEPTED' | 'PENDING') => {
     try {
+      // Envoyer la notification email à l'admin
+      const action = status === 'ACCEPTED' ? 'accepted' : 'negotiated';
+      await sendQuoteActionNotification(id, quote?.clientEmail || '', action);
+
       const response = await fetch(`/api/quotes/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -52,15 +57,15 @@ export default function QuotePage() {
 
       const updatedQuote = await response.json();
       setQuote(updatedQuote);
-            addToast({
+      addToast({
         title: 'Statut mis à jour',
-        description: `Le devis a été marqué comme ${status === 'ACCEPTED' ? 'accepté' : 'en négociation'}.`,
+        description: `Le devis a été ${status === 'ACCEPTED' ? 'accepté' : 'marqué pour négociation'}. L'administrateur a été notifié par email.`,
         type: 'success',
       });
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur inconnue est survenue.';
-            addToast({
+      addToast({
         title: 'Erreur',
         description: errorMessage,
         type: 'error',

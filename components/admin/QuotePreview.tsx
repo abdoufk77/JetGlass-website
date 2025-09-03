@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas'
 import { Button } from '@/components/ui/button'
 import { Download, X, Save, CheckCircle, MessageSquareWarning, Loader2, Send } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { sendQuoteActionNotification } from '@/lib/notifications'
 
 // Define interfaces based on NewQuotePage
 interface Product {
@@ -184,6 +185,19 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({
                       onClick={async () => {
                         setIsValidating(true)
                         try {
+                          // Envoyer notification email pour acceptation
+                          if (quoteData.clientEmail) {
+                            try {
+                              await sendQuoteActionNotification(
+                                'temp-id-' + Date.now(), 
+                                quoteData.clientEmail, 
+                                'accepted'
+                              );
+                              console.log('📧 Email de notification envoyé - Devis accepté');
+                            } catch (emailError) {
+                              console.error('Erreur email:', emailError);
+                            }
+                          }
                           await onConfirm('VALIDATED')
                         } finally {
                           setIsValidating(false)
@@ -200,6 +214,19 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({
                       onClick={async () => {
                         setIsPending(true)
                         try {
+                          // Envoyer notification email pour négociation
+                          if (quoteData.clientEmail) {
+                            try {
+                              await sendQuoteActionNotification(
+                                'temp-id-' + Date.now(), 
+                                quoteData.clientEmail, 
+                                'negotiated'
+                              );
+                              console.log('📧 Email de notification envoyé - Négociation demandée');
+                            } catch (emailError) {
+                              console.error('Erreur email:', emailError);
+                            }
+                          }
                           await onConfirm('PENDING')
                         } finally {
                           setIsPending(false)
