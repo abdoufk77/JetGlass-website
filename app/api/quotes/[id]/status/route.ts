@@ -4,7 +4,7 @@ import { sendQuoteNotification } from '@/lib/email';
 import { z } from 'zod';
 
 const statusSchema = z.object({
-  status: z.enum(['VALIDATED', 'PENDING', 'REJECTED', 'ACCEPTED']),
+  status: z.enum(['VALIDATED', 'PENDING', 'REJECTED', 'ACCEPTED', 'NEGOTIATED']),
 });
 
 type StatusUpdateBody = z.infer<typeof statusSchema>;
@@ -21,7 +21,7 @@ export async function PUT(
 
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid status provided. Must be VALIDATED, PENDING, REJECTED, or ACCEPTED.' },
+        { error: 'Invalid status provided. Must be VALIDATED, PENDING, REJECTED, ACCEPTED, or NEGOTIATED.' },
         { status: 400 }
       );
     }
@@ -46,16 +46,23 @@ export async function PUT(
       );
     }
 
-    // Mettre à jour le statut
+    // Mettre à jour le statut et récupérer le devis complet avec les produits
     const updatedQuote = await prisma.quote.update({
       where: { id },
       data: { status },
+      include: {
+        products: {
+          include: {
+            product: true
+          }
+        }
+      }
     });
 
     // Envoyer notification email si le client accepte ou demande négociation
-    if (status === 'ACCEPTED' || status === 'PENDING') {
+    if (status === 'VALIDATED' || status === 'NEGOTIATED') {
       try {
-        const action = status === 'ACCEPTED' ? 'accepted' : 'negotiated';
+        const action = status === 'VALIDATED' ? 'accepted' : 'negotiated';
         await sendQuoteNotification({
           quoteId: id,
           clientEmail: quote.clientEmail,

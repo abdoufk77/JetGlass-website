@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       await prisma.quote.update({
         where: { id: quoteId },
         data: {
-          status: action === 'accepted' ? 'ACCEPTED' : 'NEGOTIATION',
+          status: action === 'accepted' ? 'VALIDATED' : 'NEGOTIATED',
           updatedAt: new Date()
         }
       });

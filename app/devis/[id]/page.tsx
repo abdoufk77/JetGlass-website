@@ -27,8 +27,19 @@ export default function QuotePage() {
             throw new Error('Devis non trouvé')
           }
           const data = await response.json()
-          setQuote(data)
+          
+          // Vérifier que les données sont bien formatées
+          if (data && typeof data === 'object') {
+            // S'assurer que products est un tableau
+            if (!data.products || !Array.isArray(data.products)) {
+              data.products = []
+            }
+            setQuote(data)
+          } else {
+            throw new Error('Format de données invalide')
+          }
         } catch (err) {
+          console.error('Erreur lors du chargement du devis:', err)
           setError(err instanceof Error ? err.message : 'Une erreur est survenue')
         } finally {
           setLoading(false)
@@ -38,10 +49,10 @@ export default function QuotePage() {
     }
   }, [id])
 
-  const handleUpdateStatus = async (status: 'ACCEPTED' | 'PENDING') => {
+  const handleUpdateStatus = async (status: 'VALIDATED' | 'NEGOTIATED') => {
     try {
       // Envoyer la notification email à l'admin
-      const action = status === 'ACCEPTED' ? 'accepted' : 'negotiated';
+      const action = status === 'VALIDATED' ? 'accepted' : 'negotiated';
       await sendQuoteActionNotification(id, quote?.clientEmail || '', action);
 
       const response = await fetch(`/api/quotes/${id}/status`, {
@@ -56,10 +67,18 @@ export default function QuotePage() {
       }
 
       const updatedQuote = await response.json();
-      setQuote(updatedQuote);
+      
+      // S'assurer que les produits sont préservés
+      if (updatedQuote && typeof updatedQuote === 'object') {
+        if (!updatedQuote.products || !Array.isArray(updatedQuote.products)) {
+          updatedQuote.products = quote?.products || [];
+        }
+        setQuote(updatedQuote);
+      }
+      
       addToast({
         title: 'Statut mis à jour',
-        description: `Le devis a été ${status === 'ACCEPTED' ? 'accepté' : 'marqué pour négociation'}. L'administrateur a été notifié par email.`,
+        description: `Le devis a été ${status === 'VALIDATED' ? 'accepté' : 'marqué pour négociation'}. L'administrateur a été notifié par email.`,
         type: 'success',
       });
 
@@ -73,8 +92,8 @@ export default function QuotePage() {
     }
   };
 
-  const handleAccept = () => handleUpdateStatus('ACCEPTED');
-  const handleNegotiate = () => handleUpdateStatus('PENDING');
+  const handleAccept = () => handleUpdateStatus('VALIDATED');
+  const handleNegotiate = () => handleUpdateStatus('NEGOTIATED');
 
   if (loading) {
         return (
@@ -100,11 +119,11 @@ export default function QuotePage() {
       <QuotePreview
         quoteData={{
           ...quote,
-          products: quote.products.map((p: any) => ({ ...p, product: p.product }))
+          products: quote.products?.map((p: any) => ({ ...p, product: p.product })) || []
         }}
         onClose={() => { 
-          // Rediriger ou afficher un message de confirmation
-                              addToast({ title: 'Fermeture', description: 'Vous avez fermé l\'aperçu du devis.', type: 'info' });
+          // Rediriger vers la page devis
+          window.location.href = '/devis';
         }}
         isClientView={true}
         onAccept={handleAccept}

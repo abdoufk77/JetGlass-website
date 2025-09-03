@@ -51,11 +51,13 @@ interface QuotePreviewProps {
   onSave?: () => Promise<void>;
   mode?: 'create' | 'view';
   isClientView?: boolean;
+  isAdminView?: boolean;
   onAccept?: () => Promise<void>;
   onNegotiate?: () => Promise<void>;
   quoteId?: string;
   quoteStatus?: string;
   onConfirm?: (status: 'VALIDATED' | 'PENDING') => Promise<void>;
+  onCreateAndSend?: () => Promise<void>;
   isSubmitting?: boolean;
 }
 
@@ -65,11 +67,13 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({
   onSave, 
   mode = 'create', 
   isClientView = false,
+  isAdminView = false,
   onAccept,
   onNegotiate,
   quoteId,
   quoteStatus,
   onConfirm,
+  onCreateAndSend,
   isSubmitting
 }) => {
   const totals = {
@@ -84,6 +88,7 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({
   const [isNegotiating, setIsNegotiating] = useState(false)
   const [isValidating, setIsValidating] = useState(false)
   const [isPending, setIsPending] = useState(false)
+  const [isCreatingAndSending, setIsCreatingAndSending] = useState(false)
   const [cachetUrl, setCachetUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -179,7 +184,30 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({
               </div>
             ) : (
               <>
-                {mode === 'create' && onConfirm && (
+                {/* Boutons pour admin */}
+                {isAdminView && mode === 'create' && onCreateAndSend && (
+                  <>
+                    <Button 
+                      onClick={async () => {
+                        setIsCreatingAndSending(true)
+                        try {
+                          await onCreateAndSend()
+                        } finally {
+                          setIsCreatingAndSending(false)
+                        }
+                      }} 
+                      disabled={isCreatingAndSending || isGenerating} 
+                      size="sm"
+                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                    >
+                      {isCreatingAndSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2" size={16} />}
+                      {isCreatingAndSending ? 'Envoi...' : 'Créer et Envoyer par Email'}
+                    </Button>
+                  </>
+                )}
+                
+                {/* Boutons pour client */}
+                {!isAdminView && mode === 'create' && onConfirm && (
                   <>
                     <Button 
                       onClick={async () => {
@@ -241,13 +269,14 @@ const QuotePreview: React.FC<QuotePreviewProps> = ({
                     </Button>
                   </>
                 )}
-                {mode === 'create' && onSave && (
+                
+                {mode === 'create' && onSave && !isAdminView && (
                   <Button onClick={handleSaveQuote} disabled={isSaving || isGenerating} size="sm">
                     <Save className="mr-2" size={16} />
                     {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
                   </Button>
                 )}
-                <Button onClick={handleDownloadPDF} disabled={isGenerating || isSaving} size="sm">
+                <Button onClick={handleDownloadPDF} disabled={isGenerating || isSaving || isCreatingAndSending} size="sm">
                   <Download className="mr-2" size={16} />
                   {isGenerating ? 'Génération...' : 'PDF'}
                 </Button>

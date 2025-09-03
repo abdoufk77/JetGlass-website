@@ -266,6 +266,80 @@ export default function NewQuotePage() {
     await handleSaveQuote(quoteData, status);
   };
 
+  const handleCreateAndSend = async () => {
+    console.log('[CREATE AND SEND] Creating quote with PENDING status and sending email')
+    const { totalHT, totalTTC } = calculateTotals();
+    const quoteData = {
+      ...formData,
+      totalHT,
+      totalTTC,
+      tva: 20.0,
+      status: 'PENDING' as const,
+    };
+    
+    setIsLoading(true)
+    try {
+      // Créer le devis avec statut PENDING
+      const response = await fetch('/api/quotes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(quoteData)
+      })
+
+      if (response.ok) {
+        const resJson = await response.json()
+        const createdQuoteId = resJson?.quote?.id
+        const quoteNumber = resJson?.quoteNumber
+        
+        if (createdQuoteId) {
+          // Envoyer le devis par email au client
+          try {
+            const emailResponse = await fetch('/api/quotes/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ quoteId: createdQuoteId })
+            })
+            
+            if (emailResponse.ok) {
+              addToast(toast.success(
+                'Devis créé et envoyé',
+                `Le devis ${quoteNumber} a été créé et envoyé par email au client.`
+              ))
+            } else {
+              addToast(toast.warning(
+                'Devis créé mais email non envoyé',
+                `Le devis ${quoteNumber} a été créé mais l'email n'a pas pu être envoyé.`
+              ))
+            }
+          } catch (emailError) {
+            console.error('Error sending email:', emailError)
+            addToast(toast.warning(
+              'Devis créé mais email non envoyé',
+              `Le devis ${quoteNumber} a été créé mais l'email n'a pas pu être envoyé.`
+            ))
+          }
+        }
+        
+        setShowPreview(false)
+        router.push('/admin/devis')
+      } else {
+        const errorData = await response.json()
+        addToast(toast.error(
+          'Erreur de création',
+          errorData.error || 'Une erreur est survenue lors de la création du devis'
+        ))
+      }
+    } catch (error) {
+      console.error('Error creating and sending quote:', error)
+      addToast(toast.error(
+        'Erreur de connexion',
+        'Impossible de communiquer avec le serveur'
+      ))
+    } finally {
+      setIsLoading(false)
+    }
+  };
+
   const { totalHT, tva, totalTTC } = calculateTotals()
 
   return (
@@ -275,7 +349,9 @@ export default function NewQuotePage() {
           isOpen={showPreview}
           quoteData={formData}
           onClose={() => setShowPreview(false)}
-          onConfirm={handleConfirmQuote}
+          isAdminView={true}
+          onCreateAndSend={handleCreateAndSend}
+          isSubmitting={isLoading}
         />
       )}
       <div className="flex h-screen bg-gray-100">
