@@ -181,9 +181,17 @@ const QuotePreviewClient: React.FC<QuotePreviewClientProps> = ({
               {/* Header */}
               <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-300 to-blue-500"></div>
               <header className="flex justify-between items-center pb-4 border-b-2 border-black">
-                <div>
-                  <img src="/logoo.png" alt="JetGlass Logo" className="h-20" />
-                  <p className="text-lg font-bold text-gray-700 tracking-widest">INDUSTRY</p>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
+                    <img src="/logoo.png" alt="JetGlass Logo" className="h-16 w-16" />
+                    <div>
+                      <h3 className="text-2xl font-bold">
+                        <span className="text-black">Jet</span><span className="text-[#007bff]">Glass</span>
+                      </h3>
+                      <p className="text-sm font-semibold tracking-widest text-gray-500">INDUSTRY</p>
+                    </div>
+                  </div>
+                  <img src="/climalit.png" alt="Climalit Logo" className="h-36" />
                 </div>
                 <div className="text-right">
                   <p className="text-xs">Edité le: {new Date().toLocaleDateString('fr-FR')}</p>
