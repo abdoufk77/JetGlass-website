@@ -8,7 +8,7 @@ import { formatPrice } from '@/lib/utils'
 import { pageCache, CACHE_KEYS } from '@/lib/cache'
 import { calculatePrice } from '@/lib/pricing'
 import { Plus, Minus, Trash2, Send, Loader2 } from 'lucide-react'
-import QuotePreview from '@/components/admin/QuotePreview'
+import QuotePreviewClient from '@/components/admin/QuotePreviewClient'
 
 interface Category {
   id: string
@@ -528,11 +528,10 @@ export default function DevisPage() {
       </div>
 
       {isPreviewing && (
-        <QuotePreview
+        <QuotePreviewClient
           isOpen={isPreviewing}
           onClose={() => setIsPreviewing(false)}
           quoteData={quoteDataForPreview}
-          mode="create"
           onConfirm={handleConfirmQuote}
           isSubmitting={isSubmitting}
         />
