@@ -284,14 +284,14 @@ export default function ContactPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Nous Trouver</h2>
             <p className="text-gray-600">
-              Notre showroom et nos ateliers sont situés au cœur de Lyon
+              Retrouvez notre siège et nos ateliers à Casablanca.
             </p>
           </div>
 
           <div className="h-[500px] rounded-lg overflow-hidden shadow-2xl border-4 border-white">
             <iframe
-               title="Google Map"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d19801.244488271623!2d-0.11809292427696366!3d51.509865099999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761cb0f3c4e921%3A0xdda6d63b5d75c5fa!2sLondon!5e0!3m2!1sen!2suk!4v1622710821147!5m2!1sen!2suk"
+               title="Google Map Location for JET GLASS INDUSTRY"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5091.04100995833!2d-7.820595961579967!3d33.42693434935736!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda8832f023acb59%3A0xebc5ed8fe20d1bd7!2sJET%20GLASS%20INDUSTRY!5e0!3m2!1sfr!2sma!4v1759515072557!5m2!1sfr!2sma"
               width="100%"
               height="100%"
               style={{ border: 0 }}
