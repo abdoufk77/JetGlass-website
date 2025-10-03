@@ -1,9 +1,46 @@
+'use client'
+
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Award, Shield, CheckCircle, Star } from 'lucide-react'
+import Image from 'next/image'
+import { Award, Shield, CheckCircle, X } from 'lucide-react'
+
+const certifications = [
+  {
+    title: 'Attestation CTIBA double vitrage',
+    description: "Certification pour l'installation de double vitrage.",
+    icon: <Shield className="h-16 w-16 text-primary-600 mx-auto mb-4" />,
+    image: '/images/Attestation/Attestation CTIBA double vitrage.png'
+  },
+  {
+    title: 'Attestation CTIBA verre feuilleté',
+    description: 'Certification pour la pose de verre feuilleté de sécurité.',
+    icon: <Award className="h-16 w-16 text-primary-600 mx-auto mb-4" />,
+    image: '/images/Attestation/Attestation CTIBA verre feuilleté.png'
+  },
+  {
+    title: 'Attestation Conformité collage',
+    description: 'Conformité pour les techniques de collage structurel.',
+    icon: <CheckCircle className="h-16 w-16 text-primary-600 mx-auto mb-4" />,
+    image: '/images/Attestation/Attestation Conformité collage.png'
+  }
+];
 
 export default function CertificatsPage() {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const openModal = (imageUrl: string) => {
+    setSelectedImage(imageUrl)
+    setIsLoading(true)
+  }
+
+  const closeModal = () => {
+    setSelectedImage(null)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -24,109 +61,28 @@ export default function CertificatsPage() {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <Award className="h-16 w-16 text-primary-600 mx-auto mb-4" />
-                <CardTitle>Qualibat RGE</CardTitle>
-                <CardDescription>Reconnu Garant de l'Environnement</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 text-sm mb-4">
-                  Certification garantissant notre expertise en rénovation énergétique et notre engagement environnemental.
-                </p>
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  <span className="text-sm font-medium">Valide jusqu'en 2025</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <Shield className="h-16 w-16 text-primary-600 mx-auto mb-4" />
-                <CardTitle>ISO 9001</CardTitle>
-                <CardDescription>Management de la Qualité</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 text-sm mb-4">
-                  Système de management qualité certifié pour garantir la satisfaction client et l'amélioration continue.
-                </p>
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  <span className="text-sm font-medium">Certifié depuis 2018</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <Star className="h-16 w-16 text-primary-600 mx-auto mb-4" />
-                <CardTitle>CSTB</CardTitle>
-                <CardDescription>Centre Scientifique et Technique du Bâtiment</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 text-sm mb-4">
-                  Certification technique pour l'installation de systèmes verriers conformes aux normes du bâtiment.
-                </p>
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  <span className="text-sm font-medium">Agréé CSTB</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <Award className="h-16 w-16 text-primary-600 mx-auto mb-4" />
-                <CardTitle>FFB</CardTitle>
-                <CardDescription>Fédération Française du Bâtiment</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 text-sm mb-4">
-                  Membre actif de la FFB, garantissant le respect des règles professionnelles et déontologiques.
-                </p>
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  <span className="text-sm font-medium">Membre depuis 2010</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <Shield className="h-16 w-16 text-primary-600 mx-auto mb-4" />
-                <CardTitle>Assurance Décennale</CardTitle>
-                <CardDescription>Protection Totale</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 text-sm mb-4">
-                  Couverture complète de nos installations pendant 10 ans pour votre tranquillité d'esprit.
-                </p>
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  <span className="text-sm font-medium">Couverture 5M€</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <Star className="h-16 w-16 text-primary-600 mx-auto mb-4" />
-                <CardTitle>Formation Continue</CardTitle>
-                <CardDescription>Expertise Actualisée</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 text-sm mb-4">
-                  Formation régulière de nos équipes aux dernières techniques et normes de sécurité.
-                </p>
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  <span className="text-sm font-medium">40h/an par technicien</span>
-                </div>
-              </CardContent>
-            </Card>
-
+            {certifications.map((cert, index) => (
+              <Card 
+                key={index} 
+                className="hover:shadow-lg transition-shadow cursor-pointer" 
+                onClick={() => openModal(cert.image)}
+              >
+                <CardHeader className="text-center">
+                  {cert.icon}
+                  <CardTitle>{cert.title}</CardTitle>
+                  <CardDescription>{cert.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 text-sm mb-4">
+                    Cliquez pour voir l'attestation.
+                  </p>
+                  <div className="flex items-center text-green-600 justify-center">
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    <span className="text-sm font-medium">Valide</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -233,6 +189,39 @@ export default function CertificatsPage() {
           </div>
         </div>
       </section>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4" 
+          onClick={closeModal}
+        >
+          <div 
+            className="relative bg-white p-2 rounded-lg shadow-2xl max-w-6xl w-full max-h-[95vh] flex items-center justify-center" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600"></div>
+              </div>
+            )}
+            <Image 
+              src={selectedImage} 
+              alt="Attestation en plein écran" 
+              width={1200} 
+              height={1600} 
+              className={`object-contain w-full h-full max-h-[90vh] transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+              onLoad={() => setIsLoading(false)}
+            />
+            <button 
+              onClick={closeModal} 
+              className="absolute -top-4 -right-4 bg-white text-gray-800 rounded-full p-2 shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-110"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
